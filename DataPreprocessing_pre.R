@@ -15,177 +15,101 @@ basename(getwd())
 
 #read each line and convert
 
-# exp 1.1
+# data
 content<-readLines(root$find_file("jatos_results_20230515181739.txt"))
-
 res<-lapply(content,fromJSON)
-
-
-# each subject has 6 lists in order of arrival and by subjects.
-# res[[1]] are the demographic data of subject 1
-# res[[2]] are the data of the face-dot numeric estimation of subject 1
-# res[[3]] are the AQ data of subject 1
-# res[[4]] are the data of the browser of subject 1
-# res[[4]] are the quality question and email data of subject 1
-# res[[6]] are the demographic data of subject 2
-# res[[7]] are the data of the face-dot numeric estimation of subject 1
-# ....
-
-iSub      <- 0
-sleep <- c()
-birthday  <- c()
-country      <- c()
-sex    <- c()
-Studies   <- c()
-AffectionPsycho <- c()
-medication_1 <- c()
-Estimation <- c()
-Stimulus <- c()
-Rt <- 
-AQ      <- c()
-Browser <- c()
-QualityTest    <- c()
-TeEscuchamos <- c()
-
-# Experiment data frame
-df_exp <- as.data.frame( res[[2]]) ## asi lo creo como df
-
-for (s in 1:(length(res)-4)){
-  
-  ind_suenio <- NaN  
-  ind_fecha <- NaN  
-  ind_pais <- NaN  
-  ind_genero <- NaN  
-  ind_estudio <- NaN  
-  ind_affeccion <- NaN  
-  ind_medicacion <- NaN  
-  
-  for (item in 1:length(res[[s]])){
-    if (is.null(res[[s]][item]$sueno)           ==FALSE){   ind_suenio <- item   }
-    if (is.null(res[[s]][item]$Cumpleanos)      ==FALSE){   ind_fecha  <- item   }
-    if (is.null(res[[s]][item]$Pais)            ==FALSE){   ind_pais   <- item   }
-    if (is.null(res[[s]][item]$Genero)          ==FALSE){   ind_genero <- item   }
-    if (is.null(res[[s]][item]$Estudio)         ==FALSE){   ind_estudio <- item   }
-    if (is.null(res[[s]][item]$AffeccionPsico)  ==FALSE){   ind_affeccion <- item   }
-    if (is.null(res[[s]][item]$medicacion)      ==FALSE){   ind_medicacion <- item   }
-  }
-  
-  # Condition 1 will be TRUE if there is a response to the first component of demographic data
-  condicion1 <-  is.nan(ind_suenio) == FALSE
-  # Condition 2 will be TRUE if there is an answer to the AQ questions (component 4)
-  condicion2 <-  is.null(res[[s+3]][1]$question) ==FALSE
-  
-  if(condicion1 & condicion2 ){ # new participant
-    iSub <- iSub + 1;
-    # I take data from component 1 (demographic)
-    horasSuen <- c(horasSuen,res[[s]][ind_suenio]$sueno)
-    fechaNac  <- c(fechaNac,res[[s]][ind_fecha]$Cumpleanos)
-    pais <- c(pais, res[[s]][ind_pais]$Pais)
-    genero <- c(genero,res[[s]][ind_genero]$Genero)
-    estudio <- c(estudio,res[[s]][ind_estudio]$Estudio)
-    affeccionPsico <- c(affeccionPsico,res[[s]][ind_affeccion]$AffeccionPsico)
-    medicacion <- c(medicacion,res[[s]][ind_medicacion]$medicacion)
-    
-    # Experiment data 
-    df_exp <- rbind(df_exp, res[[s+2]])
-    
-    # AQ data
-    AQ <- c(AQ, res[[s+3]])  
-    
-    if(is.null(res[[s+4]][1]$browser) ==FALSE){
-      Browser <- c(Browser, res[[s+4]][1]$browser)
-    }else{
-      Browser <- c(Browser, NaN)}
-    
-    if(length(res)-s >= 5 ){
-      
-      if(is.null(res[[s+5]][1]$sincericidio) ==FALSE){
-        Sinc <- c(Sinc, res[[s+5]][1]$sincericidio)
-      }else{
-        Sinc <- c(Sinc, NaN)}
-      
-      if(is.null(res[[s+5]]$TeEscuchamos) ==FALSE){
-        TeEscuchamos <- c(TeEscuchamos, res[[s+5]]$TeEscuchamos)
-      }else{
-        TeEscuchamos <- c(TeEscuchamos, NaN)}
-    }
-  }
-}
-####### df 
-
-# df_DatosUnicos: for data of each subject.
-# df_exp: save each trial of metacognition exp (already created in previous loop)
-
-## df_DatosUnicos
-sujetos <-  1:iSub
-df_DatosUnicos <- data.frame(
-  sujetos = sujetos, 
-  horasSueno = horasSuen,
-  fechaNac = fechaNac,
-  pais = pais,
-  genero = genero,
-  estudio = estudio,
-  affeccionPsico = affeccionPsico,
-  medicacion = medicacion,
-  Browser = Browser,
-  sincericidio = Sinc,
-  TeEscuchamos = TeEscuchamos,
-  stringsAsFactors = FALSE
-)
-####################3 desde aca continua con el original
-
-
-
-
-
-
-
 
 # load the function to read the .txt results from JATOS and create a dataframe
 source(root$find_file("Analysis/AuxiliaryFunctions/initial_df.R"))
 df_list <- initial_df(res)
 
-# df_DatosUnicos: for data of each subject.
+# df_NotExperimentData: for data of each subject.
 # df_exp: save each trial of metacognition exp (already created in previous loop)
-df_DatosUnicos <- df_list$a
+df_NotExperimentData <- df_list$a
 df_exp <- df_list$b
 AQ <- df_list$c
 
-# exp 1.2 + 1.3
-content<-readLines(root$find_file("Data/Exp2+3/jatos_results_20210824144041.txt"))
+## check problems with videos loading, and canvas measures
+videos_checking <- if(is.null(unique(df_exp$failed_video)[[1]])){print("videos: OK")}else{print("videos: problem")}
+canvas_width_checking <- summary(df_exp$canvas_width)
+canvas_height_checking <- summary(df_exp$canvas_height)
 
-res<-lapply(content,fromJSON)
+################## aca filtrar lo que no me interesa del df_exp
+library(dplyr)
 
-df_list <- initial_df(res)
-df <- df_list$a 
-df$sujetos <- df$sujetos + 1000
-df_DatosUnicos <- rbind(df_DatosUnicos, df) 
-df_exp <- rbind(df_exp, df_list$b)
-AQ <- c(AQ,df_list$c)
+# first of all, I filter by columns of interest. Then I filter by rows of interest.
+df_exp_filtered <- df_exp %>%
+  # columns
+  select(rt, stimulus, response, trial_type, trial_index) %>%
+  # rows
+  filter(trial_index %in% c(3,4,30,32,33,39,41,42,48))
 
-####### adding subjects and trials columns to df_exp
+# add participants index column
 
-# get the number of trials per subject
-cant_trials <- nrow(df_exp)/ nrow(df_DatosUnicos)
+n_rows <- nrow(df_exp_filtered)/ nrow(df_NotExperimentData)
+participants <- rep(df_NotExperimentData$participants, each = n_rows)
+df_exp_filtered$participants <- participants
 
-# prepare subject column to add in df_exp
-sujetos <- rep(df_DatosUnicos$sujetos, each = cant_trials)
+# reorder face videos values and dots labels
+
+for (i in 1:nrow(df_NotExperimentData)) {
+  if(i ==1){
+    d <- df_exp_filtered %>%
+      filter(participants==i) %>%
+      mutate(stimulus = case_when(row_number() == 2 ~ as.character(.$stimulus[1]),
+                                  row_number() == 3 ~ "dot_40_60",
+                                  row_number() == 5 ~ as.character(.$stimulus[4]),
+                                  row_number() == 6 ~ "dot_40",
+                                  row_number() == 8 ~ as.character(.$stimulus[7]),
+                                  row_number() == 9 ~ "dot_60"),
+             response = case_when(row_number() == 2 ~ as.numeric(.$response[[2]]$Estimation),
+                                  row_number() == 3 ~ as.numeric(.$response[[3]]$Estimation),
+                                  row_number() == 5 ~ as.numeric(.$response[[5]]$Estimation),
+                                  row_number() == 6 ~ as.numeric(.$response[[6]]$Estimation),
+                                  row_number() == 8 ~ as.numeric(.$response[[8]]$Estimation),
+                                  row_number() == 9 ~ as.numeric(.$response[[9]]$Estimation)))
+  }else{
+    d_mod <- df_exp_filtered %>%
+      filter(participants==i) %>%
+      mutate(stimulus = case_when(row_number() == 2 ~ as.character(.$stimulus[1]),
+                                  row_number() == 3 ~ "dot_40_60",
+                                  row_number() == 5 ~ as.character(.$stimulus[4]),
+                                  row_number() == 6 ~ "dot_40",
+                                  row_number() == 8 ~ as.character(.$stimulus[7]),
+                                  row_number() == 9 ~ "dot_60"),
+             response = case_when(row_number() == 2 ~ as.numeric(.$response[[2]]$Estimation),
+                                  row_number() == 3 ~ as.numeric(.$response[[3]]$Estimation),
+                                  row_number() == 5 ~ as.numeric(.$response[[5]]$Estimation),
+                                  row_number() == 6 ~ as.numeric(.$response[[6]]$Estimation),
+                                  row_number() == 8 ~ as.numeric(.$response[[8]]$Estimation),
+                                  row_number() == 9 ~ as.numeric(.$response[[9]]$Estimation)))
+    d <- rbind(d,d_mod)
+    
+  }
+}
+
+# filter again
+df_exp_filtered_mod <- d %>%
+  # rows
+  filter(trial_index %in% c(4,30,33,39,42,48)) %>%
+  # columns
+  select(-trial_type, -trial_index)
+
+####### adding participants and trials columns to df_exp_filtered_mod
 
 # prepare trials column
-col_trials <- 1:cant_trials
-trials <- rep(col_trials, times = nrow(df_DatosUnicos))
+trials <- rep(1:6, times = nrow(df_NotExperimentData))
 
 # add columns to df_exp
-df_exp$sujetos <- sujetos
-df_exp$trials <- trials
+df_exp_filtered_mod$trial <- trials
 
 ####### get the AQ quotient 
 
 # number of AQ sublists for each subject 
-cant_componentes_por_sujetos <- 2
+n_AQ_sublists <- 2
 
 # number of subject 
-cant_sujetos <- nrow(df_DatosUnicos)
+n_participants <- nrow(df_NotExperimentData)
 
 # location of the sublist where the responses to the AQ of the first subject are
 ubicacion_comp_AQ <- 2
@@ -199,31 +123,31 @@ source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_CORREGIDA.R"
 #                                 ubicacion_comp_AQ,
 #                                 AQ)
 ###### this is the function for AQ
-puntaje_AQ_sujetos <- puntaje_AQ_corregido(cant_sujetos,
-                                           cant_componentes_por_sujetos,
+puntaje_AQ_sujetos <- puntaje_AQ_corregido(n_participants,
+                                           n_AQ_sublists,
                                            ubicacion_comp_AQ,
                                            AQ)
 ### this is the function for the social subscale of AQ 
 source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_social.R"))
 
-puntaje_AQ_sujetos_social <- puntaje_AQ_social(cant_sujetos,
-                                           cant_componentes_por_sujetos,
+puntaje_AQ_sujetos_social <- puntaje_AQ_social(n_participants,
+                                               n_AQ_sublists,
                                            ubicacion_comp_AQ,
                                            AQ)
 
 ### this is the function for the attencion switch subscale of AQ
 source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_atencion_switch.R"))
 
-puntaje_AQ_sujetos_atencion_switch <- puntaje_AQ_atencion_switch(cant_sujetos,
-                                               cant_componentes_por_sujetos,
+puntaje_AQ_sujetos_atencion_switch <- puntaje_AQ_atencion_switch(n_participants,
+                                                                 n_AQ_sublists,
                                                ubicacion_comp_AQ,
                                                AQ)
 
 ### this is the function for the attencion to detail subscale of AQ
 source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_atencion_detail.R"))
 
-puntaje_AQ_sujetos_atencion_detail <- puntaje_AQ_atencion_detail(cant_sujetos,
-                                                                 cant_componentes_por_sujetos,
+puntaje_AQ_sujetos_atencion_detail <- puntaje_AQ_atencion_detail(n_participants,
+                                                                 n_AQ_sublists,
                                                                  ubicacion_comp_AQ,
                                                                  AQ)
 
@@ -231,50 +155,28 @@ puntaje_AQ_sujetos_atencion_detail <- puntaje_AQ_atencion_detail(cant_sujetos,
 ### ### this is the function for the comunication subscale of AQ
 source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_communication.R"))
 
-puntaje_AQ_sujetos_communication <- puntaje_AQ_communication(cant_sujetos,
-                                                                 cant_componentes_por_sujetos,
+puntaje_AQ_sujetos_communication <- puntaje_AQ_communication(n_participants,
+                                                             n_AQ_sublists,
                                                                  ubicacion_comp_AQ,
                                                                  AQ)
 
 ### ### this is the function for the imagination subscale of AQ
 source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_imagination.R"))
 
-puntaje_AQ_sujetos_imagination <- puntaje_AQ_imagination(cant_sujetos,
-                                                            cant_componentes_por_sujetos,
+puntaje_AQ_sujetos_imagination <- puntaje_AQ_imagination(n_participants,
+                                                         n_AQ_sublists,
                                                             ubicacion_comp_AQ,
                                                             AQ)
 
-# add to df_DatosUnicos
-df_DatosUnicos$AQ <- puntaje_AQ_sujetos 
-df_DatosUnicos$AQ_social <- puntaje_AQ_sujetos_social
-df_DatosUnicos$AQ_atencion_switch <- puntaje_AQ_sujetos_atencion_switch
-df_DatosUnicos$AQ_atencion_detail <- puntaje_AQ_sujetos_atencion_detail
-df_DatosUnicos$AQ_communication <- puntaje_AQ_sujetos_communication
-df_DatosUnicos$AQ_imagination <- puntaje_AQ_sujetos_imagination
+# add to df_NotExperimentData
+df_NotExperimentData$AQ <- puntaje_AQ_sujetos 
+df_NotExperimentData$AQ_social <- puntaje_AQ_sujetos_social
+df_NotExperimentData$AQ_attentional_switches <- puntaje_AQ_sujetos_atencion_switch
+df_NotExperimentData$AQ_attencion_detail <- puntaje_AQ_sujetos_atencion_detail
+df_NotExperimentData$AQ_communication <- puntaje_AQ_sujetos_communication
+df_NotExperimentData$AQ_imagination <- puntaje_AQ_sujetos_imagination
 
-####### Adding columns of
-
-## Reaction Times
-df_exp_mod <- df_exp
-
-df_exp_mod$t_ensayo_discriminacion <- df_exp_mod$discrimination_t_keydown - 
-  df_exp_mod$discrimination_t_onset
-df_exp_mod$t_ensayo_confianza <- df_exp_mod$confidence_t_keydown -
-  df_exp_mod$confidence_t_onset
-
-## Percentage of correct answers
-
-Pc   <- rep(NA, nrow(df_DatosUnicos)) 
-existing_subjects <- unique(df_DatosUnicos$sujetos)
-for (s in 1:nrow(df_DatosUnicos)){
-  Pc[s]   <- mean(df_exp_mod$discrimination_is_correct[df_exp_mod$sujetos== existing_subjects[s]])
-}
-
-# add to df_DatosUnicos
-df_DatosUnicos$PC <- Pc
-
-# add difference in dots in every trial to df_exp
-df_exp_mod$diferencia_puntitos <- abs(df_exp_mod$dots_num_left- df_exp_mod$dots_num_right)
+######################################################################################### HASTA ACA
 
 ####### Unifying the format of columns values
 # (horaSueno, medicacion affeccionPsico, TeEscuchamos from df_DatosUnicos)
@@ -462,10 +364,10 @@ ExistingSubjects <- unique(df_exp_mod2$sujetos)
 for (i in 1:length(ExistingSubjects)){
   
   sujeto_df_exp <- df_exp_mod2[df_exp_mod2$sujetos== ExistingSubjects[i],]
-  cant_trials <- nrow(sujeto_df_exp)
+  n_trials <- nrow(sujeto_df_exp)
   
   sujeto_df_DatosUnicos_mod2 <- df_DatosUnicos_mod2[df_DatosUnicos_mod2$sujetos== ExistingSubjects[i],]
-  df <- as.data.frame(lapply(sujeto_df_DatosUnicos_mod2, rep, cant_trials))
+  df <- as.data.frame(lapply(sujeto_df_DatosUnicos_mod2, rep, n_trials))
   
   df_total <- rbind(df_total, df)
 }
@@ -537,16 +439,16 @@ cat("Cantidad de trials luego de quemar los primeros 20 trials: ", nrow(df_total
 
 ## Filter by trails needed to calculate AUROC2
 ## discarding because very few trials
-cant_trials_por_sujeto <- rep(NaN, length(unique(df_total$sujetos)))
+n_trials_por_sujeto <- rep(NaN, length(unique(df_total$sujetos)))
 existing_subject <- unique(df_total$sujetos)
 
-for (i in 1:length(cant_trials_por_sujeto)) {
-  cant_trials_por_sujeto[i] <- nrow(df_total[df_total$sujetos == existing_subject[i],])
+for (i in 1:length(n_trials_por_sujeto)) {
+  n_trials_por_sujeto[i] <- nrow(df_total[df_total$sujetos == existing_subject[i],])
 }
 
 # I see who are the ones who have fewer trials than X
-indices_cant_trials <- which(cant_trials_por_sujeto < 90)
-subj_pocos_trials<- existing_subject[indices_cant_trials]
+indices_n_trials <- which(n_trials_por_sujeto < 90)
+subj_pocos_trials<- existing_subject[indices_n_trials]
 
 # I discard them
 df_total <- df_total[! df_total$sujetos %in% subj_pocos_trials,]
@@ -577,9 +479,9 @@ todos_sujetos_mc <- c()
 for (i in 1:length(ExistingSubjects)) {
   
   sujeto_df_exp <- df_total[df_total$sujetos == ExistingSubjects[i],]
-  cant_trials <- nrow(sujeto_df_exp)
+  n_trials <- nrow(sujeto_df_exp)
   
-  sujeto_mc <-rep(mc[i],cant_trials)
+  sujeto_mc <-rep(mc[i],n_trials)
   
   todos_sujetos_mc <- c(todos_sujetos_mc,sujeto_mc)
 }
