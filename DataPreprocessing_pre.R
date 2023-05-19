@@ -176,6 +176,47 @@ df_NotExperimentData$AQ_attencion_detail <- puntaje_AQ_sujetos_atencion_detail
 df_NotExperimentData$AQ_communication <- puntaje_AQ_sujetos_communication
 df_NotExperimentData$AQ_imagination <- puntaje_AQ_sujetos_imagination
 
+
+
+##### empiezo a chusmear algunos analisis porque si
+fs2yo <- df_exp_filtered_mod %>%
+  filter(stimulus== "videos/fs2yo.mp4")
+
+fs2o <- df_exp_filtered_mod %>%
+  filter(stimulus== "videos/fs2o.mp4")
+
+fs2y <- df_exp_filtered_mod %>%
+  filter(stimulus== "videos/fs2y.mp4")
+
+fs1yo <- df_exp_filtered_mod %>%
+  filter(stimulus== "videos/fs1yo.mp4")
+
+fs1o <- df_exp_filtered_mod %>%
+  filter(stimulus== "videos/fs1o.mp4")
+
+fs1y <- df_exp_filtered_mod %>%
+  filter(stimulus== "videos/fs1y.mp4")
+
+dot_40_60 <- df_exp_filtered_mod %>%
+  filter(stimulus== "dot_40_60")
+
+dot_40 <- df_exp_filtered_mod %>%
+  filter(stimulus== "dot_40")
+
+dot_60 <- df_exp_filtered_mod %>%
+  filter(stimulus== "dot_60")
+
+fsyo <- rbind(fs2yo, fs1yo)
+fso <- rbind(fs1o, fs2o)
+fsy <- rbind(fs2y, fs1y)
+
+mean(dot_40_60$response)
+mean(dot_40$response)
+mean(dot_60$response)
+
+mean(fsyo$response)
+mean(fso$response)
+mean(fsy$response)
 ######################################################################################### HASTA ACA
 
 ####### Unifying the format of columns values
