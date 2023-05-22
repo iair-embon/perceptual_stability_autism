@@ -1,6 +1,6 @@
-##################################################
-# Metacognition and ASD experiment preprocessing #
-##################################################
+#######################################################
+# Perceptual stability - ASD experiment preprocessing #
+#######################################################
 
 ####### Read the .txt results from JATOS and perform the data preprocessing.
 
