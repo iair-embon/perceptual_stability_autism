@@ -214,9 +214,18 @@ mean(dot_40_60$response)
 mean(dot_40$response)
 mean(dot_60$response)
 
-mean(fsyo$response)
-mean(fso$response)
-mean(fsy$response)
+test <- mean(fsyo$response)
+old <- mean(fso$response)
+young <- mean(fsy$response)
+
+sd(dot_40_60$response)
+sd(dot_40$response)
+sd(dot_60$response)
+
+sd(fsyo$response)
+sd(fso$response)
+sd(fsy$response)
+
 ######################################################################################### HASTA ACA
 
 ####### Unifying the format of columns values
