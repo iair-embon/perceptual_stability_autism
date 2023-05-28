@@ -177,6 +177,45 @@ df_NotExperimentData$AQ_communication <- puntaje_AQ_sujetos_communication
 df_NotExperimentData$AQ_imagination <- puntaje_AQ_sujetos_imagination
 
 
+## yuval s format
+library(tidyverse)
+
+df_total_response <- df_exp_filtered_mod %>%
+  pivot_wider(names_from = trial, names_prefix = "response_trial_", values_from = response) %>%
+  mutate_all(., ~replace(., is.na(.), 5555)) %>%
+  group_by(participants) %>%
+  summarise(response_trial_1 = min(response_trial_1),
+            response_trial_2 = min(response_trial_2),
+            response_trial_3 = min(response_trial_3),
+            response_trial_4 = min(response_trial_4),
+            response_trial_5 = min(response_trial_5),
+            response_trial_6 = min(response_trial_6))
+
+df_total_rt <- df_exp_filtered_mod %>%
+  pivot_wider(names_from = trial, names_prefix = "rt_trial_", values_from = rt) %>%
+  mutate_all(., ~replace(., is.na(.), -100)) %>%
+  group_by(participants) %>%
+  summarise(rt_trial_1 = max(rt_trial_1),
+            rt_trial_2 = max(rt_trial_2),
+            rt_trial_3 = max(rt_trial_3),
+            rt_trial_4 = max(rt_trial_4),
+            rt_trial_5 = max(rt_trial_5),
+            rt_trial_6 = max(rt_trial_6))
+
+df_total_stim <- df_exp_filtered_mod %>%
+  pivot_wider(names_from = trial, names_prefix = "stim_trial_", values_from = stimulus) %>%
+  mutate_all(., ~replace(., is.na(.), -100)) %>%
+  group_by(participants) %>%
+
+
+
+for (i in 1:length(unique(df_exp_filtered_mod$participants))) {
+  lala <- df_exp_filtered_mod %>%
+    filter(participants == i)
+  df_total <- cbind(df_total, lala)
+}
+
+######## pruebo meter todo a lo largo  
 
 ##### empiezo a chusmear algunos analisis porque si
 fs2yo <- df_exp_filtered_mod %>%
