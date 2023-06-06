@@ -12,12 +12,14 @@ initial_df <- function(res){
 # ....
 
 iSub      <- 0
+prolific <- c()
 sleep <- c()
 birthday  <- c()
 country  <- c()
 sex    <- c()
 Studies   <- c()
-AffectionPsycho <- c()
+AffectionPsycho_1 <- c()
+AffectionPsycho_2 <- c()
 medication_1 <- c()
 medication_2 <- c()
 AQ      <- c()
@@ -27,72 +29,85 @@ Problems <- c()
 
 for (s in 1:(length(res)-4)){
   
+  ind_prolific <- NaN
   ind_sleep <- NaN  
   ind_birthday <- NaN  
   ind_country <- NaN  
   ind_sex <- NaN  
   ind_Studies <- NaN  
-  ind_AffectionPsycho <- NaN  
+  ind_AffectionPsycho_1 <- NaN  
+  ind_AffectionPsycho_2 <- NaN  
   ind_medication_1 <- NaN
   ind_medication_2 <- NaN
   
   for (item in 1:length(res[[s]])){
+    if (is.null(res[[s]][item]$prolific)           ==FALSE){   ind_prolific <- item   }
     if (is.null(res[[s]][item]$sleep)           ==FALSE){   ind_sleep <- item   }
     if (is.null(res[[s]][item]$birthday)      ==FALSE){   ind_birthday   <- item   }
     if (is.null(res[[s]][item]$country)            ==FALSE){   ind_country  <- item   }
     if (is.null(res[[s]][item]$sex)          ==FALSE){   ind_sex <- item   }
     if (is.null(res[[s]][item]$Studies)         ==FALSE){   ind_Studies <- item   }
-    if (is.null(res[[s]][item]$AffectionPsycho)  ==FALSE){   ind_AffectionPsycho <- item   }
+    if (is.null(res[[s]][item]$AffectionPsycho_1)  ==FALSE){   ind_AffectionPsycho_1 <- item   }
+    if (is.null(res[[s]][item]$AffectionPsycho_2)  ==FALSE){   ind_AffectionPsycho_2 <- item   }
     if (is.null(res[[s]][item]$medication_1)      ==FALSE){   ind_medication_1 <- item   }
     if (is.null(res[[s]][item]$medication_2)      ==FALSE){   ind_medication_2 <- item   }
   }
   
   # Condition 1 will be TRUE if there is a response to the first component of demographic data
   condition1 <-  is.nan(ind_sleep) == FALSE
+  #if(is.nan(ind_sleep) == TRUE){print(s)}
   # Condition 2 will be TRUE if there is an answer to the AQ questions (component 3)
-  condition2 <-  is.null(res[[s+2]][1]$question) ==FALSE
+  condition2 <-  is.null(res[[s+4]]$QualityTest) ==FALSE
   
   if(condition1 & condition2 ){ # new participant
-    iSub <- iSub + 1;
-    # I take data from component 1 (demographic)
-    sleep <- c(sleep,res[[s]][ind_sleep]$sleep)
-    birthday  <- c(birthday,res[[s]][ind_birthday]$birthday)
-    country <- c(country, res[[s]][ind_country]$country)
-    sex <- c(sex,res[[s]][ind_sex]$sex)
-    Studies <- c(Studies,res[[s]][ind_Studies]$Studies)
-    AffectionPsycho <- c(AffectionPsycho,res[[s]][ind_AffectionPsycho]$AffectionPsycho)
-    medication_1 <- c(medication_1,res[[s]][ind_medication_1]$medication_1)
-    if(!is.nan(ind_medication_2)){
-      medication_2 <- c(medication_2,res[[s]][ind_medication_2]$medication_2)
-    }else{
-      medication_2 <-NaN
-    }
-    
-    # Experiment data 
-    if(s<3){
-      df_exp <- as.data.frame(res[[2]])}else{
-        df_exp <- rbind(df_exp, res[[s+1]])    
+    if(!(res[[s]][ind_prolific]$prolific %in% prolific)){
+      iSub <- iSub + 1;
+      # I take data from component 1 (demographic)
+      prolific <- c(prolific,res[[s]][ind_prolific]$prolific)
+      sleep <- c(sleep,res[[s]][ind_sleep]$sleep)
+      birthday  <- c(birthday,res[[s]][ind_birthday]$birthday)
+      country <- c(country, res[[s]][ind_country]$country)
+      sex <- c(sex,res[[s]][ind_sex]$sex)
+      Studies <- c(Studies,res[[s]][ind_Studies]$Studies)
+      AffectionPsycho_1 <- c(AffectionPsycho_1,res[[s]][ind_AffectionPsycho_1]$AffectionPsycho_1)
+      if(!is.nan(ind_AffectionPsycho_2)){
+        AffectionPsycho_2 <- c(AffectionPsycho_2,res[[s]][ind_AffectionPsycho_2]$AffectionPsycho_2)
+      }else{
+        AffectionPsycho_2 <-c(AffectionPsycho_2,NaN) 
       }
-    
-    # AQ data
-    AQ <- c(AQ, res[[s+2]])  
-    
-    if(is.null(res[[s+3]][1]$browser) ==FALSE){
-      Browser <- c(Browser, res[[s+3]][1]$browser)
-    }else{
-      Browser <- c(Browser, NaN)}
-    
-    if(length(res)-s >= 4 ){
-      
-      if(is.null(res[[s+4]][1]$QualityTest) ==FALSE){
-        QualityTest <- c(QualityTest, res[[s+4]][1]$QualityTest)
+      medication_1 <- c(medication_1,res[[s]][ind_medication_1]$medication_1)
+      if(!is.nan(ind_medication_2)){
+        medication_2 <- c(medication_2,res[[s]][ind_medication_2]$medication_2)
       }else{
-        QualityTest <- c(QualityTest, NaN)}
+        medication_2 <-c(medication_2,NaN)
+      }
       
-      if(is.null(res[[s+4]]$Problems) ==FALSE){
-        Problems <- c(Problems, res[[s+4]]$Problems)
+      # Experiment data 
+      if(s<3){
+        df_exp <- as.data.frame(res[[2]])}else{
+          df_exp <- rbind(df_exp, res[[s+1]])    
+        }
+      
+      # AQ data
+      AQ <- c(AQ, res[[s+2]])  
+      
+      if(is.null(res[[s+3]][1]$browser) ==FALSE){
+        Browser <- c(Browser, res[[s+3]][1]$browser)
       }else{
-        Problems <- c(Problems, NaN)}
+        Browser <- c(Browser, NaN)}
+      
+      if(length(res)-s >= 4 ){
+        
+        if(is.null(res[[s+4]][1]$QualityTest) ==FALSE){
+          QualityTest <- c(QualityTest, res[[s+4]][1]$QualityTest)
+        }else{
+          QualityTest <- c(QualityTest, NaN)}
+        
+        if(is.null(res[[s+4]]$Problems) ==FALSE){
+          Problems <- c(Problems, res[[s+4]]$Problems)
+        }else{
+          Problems <- c(Problems, NaN)}
+      }
     }
   }
 }
@@ -104,13 +119,15 @@ for (s in 1:(length(res)-4)){
 ## df_NotExperimentData
 participants <-  1:iSub
 df_NotExperimentData <- data.frame(
-  participants = participants, 
+  participants = participants,
+  prolific = prolific,
   sleep = sleep,
   birthday = birthday,
   country = country,
   sex = sex,
   Studies = Studies,
-  AffectionPsycho = AffectionPsycho,
+  AffectionPsycho_1 = AffectionPsycho_1,
+  AffectionPsycho_2 = AffectionPsycho_2,
   medication_1 = medication_1,
   medication_2 = medication_2,
   Browser = Browser,

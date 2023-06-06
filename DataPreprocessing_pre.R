@@ -16,7 +16,7 @@ basename(getwd())
 #read each line and convert
 
 # data
-content<-readLines(root$find_file("jatos_results_20230515181739.txt"))
+content<-readLines(root$find_file("pilot/jatos_results_20230605155613.txt"))
 res<-lapply(content,fromJSON)
 
 # load the function to read the .txt results from JATOS and create a dataframe
@@ -42,7 +42,7 @@ df_exp_filtered <- df_exp %>%
   # columns
   select(rt, stimulus, response, trial_type, trial_index) %>%
   # rows
-  filter(trial_index %in% c(3,4,30,32,33,39,41,42,48))
+  filter(trial_index %in% c(5,6,32,34,35,41,43,44,50))
 
 # add participants index column
 
@@ -91,7 +91,7 @@ for (i in 1:nrow(df_NotExperimentData)) {
 # filter again
 df_exp_filtered_mod <- d %>%
   # rows
-  filter(trial_index %in% c(4,30,33,39,42,48)) %>%
+  filter(trial_index %in% c(6,32,35,41,44,50)) %>%
   # columns
   select(-trial_type, -trial_index)
 
@@ -177,6 +177,7 @@ df_NotExperimentData$AQ_communication <- puntaje_AQ_sujetos_communication
 df_NotExperimentData$AQ_imagination <- puntaje_AQ_sujetos_imagination
 
 
+<<<<<<< HEAD
 ## yuval s format
 library(tidyverse)
 
@@ -216,6 +217,11 @@ for (i in 1:length(unique(df_exp_filtered_mod$participants))) {
 }
 
 ######## pruebo meter todo a lo largo  
+=======
+prolific_info<-read.csv("pilot/prolific_export_05062023_40_participants.csv") 
+prolific_info$Participant.id %in%  df_NotExperimentData$prolific
+df_NotExperimentData$prolific %in% prolific_info$Participant.id
+>>>>>>> 9a32a3bf110af3a6d4086cc73f458cd565ad1947
 
 ##### empiezo a chusmear algunos analisis porque si
 fs2yo <- df_exp_filtered_mod %>%
@@ -253,9 +259,9 @@ mean(dot_40_60$response)
 mean(dot_40$response)
 mean(dot_60$response)
 
-test <- mean(fsyo$response)
-old <- mean(fso$response)
-young <- mean(fsy$response)
+mean(fsyo$response)
+mean(fso$response)
+mean(fsy$response)
 
 sd(dot_40_60$response)
 sd(dot_40$response)
@@ -264,6 +270,9 @@ sd(dot_60$response)
 sd(fsyo$response)
 sd(fso$response)
 sd(fsy$response)
+
+write.csv(df_exp_filtered_mod, "pilot/df_exp_filtered_mod.csv", row.names=FALSE)
+write.csv(df_NotExperimentData, "pilot/df_NotExperimentData.csv", row.names=FALSE)
 
 ######################################################################################### HASTA ACA
 
