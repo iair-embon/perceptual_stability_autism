@@ -177,7 +177,6 @@ df_NotExperimentData$AQ_communication <- puntaje_AQ_sujetos_communication
 df_NotExperimentData$AQ_imagination <- puntaje_AQ_sujetos_imagination
 
 
-<<<<<<< HEAD
 ## yuval s format
 library(tidyverse)
 
@@ -217,11 +216,9 @@ for (i in 1:length(unique(df_exp_filtered_mod$participants))) {
 }
 
 ######## pruebo meter todo a lo largo  
-=======
 prolific_info<-read.csv("pilot/prolific_export_05062023_40_participants.csv") 
 prolific_info$Participant.id %in%  df_NotExperimentData$prolific
 df_NotExperimentData$prolific %in% prolific_info$Participant.id
->>>>>>> 9a32a3bf110af3a6d4086cc73f458cd565ad1947
 
 ##### empiezo a chusmear algunos analisis porque si
 fs2yo <- df_exp_filtered_mod %>%
