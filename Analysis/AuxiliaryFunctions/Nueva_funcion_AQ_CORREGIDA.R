@@ -30,7 +30,7 @@ puntaje_AQ_corregido <- function (n_participants,
     # Saco el puntaje del participante de acuerdo a sus respuestas. (hasta el indice 25 (incluido) total acuerdo 
     # y acuerdo parcial puntea 1. Desde el indice 26 hasta el 40, desacuerdo total y desacuerdo parcial puntea 1
     for (i in 1:length(respuestas_AQ)){
-      if (i %in% disagree){
+      if (i %in% agree){
         if(respuestas_AQ[i]== 1){
           puntaje_AQ <- puntaje_AQ + 1
         }else if (respuestas_AQ[i]== 2){

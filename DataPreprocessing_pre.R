@@ -215,7 +215,8 @@ for (i in 1:length(unique(df_exp_filtered_mod$participants))) {
   df_total <- cbind(df_total, lala)
 }
 
-######## pruebo meter todo a lo largo  
+######## I observe if all the paritcipant.id are in prolific data and the other
+######## way around 
 prolific_info<-read.csv("pilot/prolific_export_05062023_40_participants.csv") 
 prolific_info$Participant.id %in%  df_NotExperimentData$prolific
 df_NotExperimentData$prolific %in% prolific_info$Participant.id
@@ -342,81 +343,6 @@ source(root$find_file("Analysis/AuxiliaryFunctions/unifica_col_TeEscuchamos.R"))
 # converts the TeEscuchamos values in Si, No , noSabe
 df_DatosUnicos_mod <- unifica_col_TeEscuchamos(df_DatosUnicos_mod,df_DatosUnicos)
 
-####### Add the confidence columns to df_DatosUnicos_mod
-
-# Confidence columns for all the subjects
-confidence_key_1 <- rep(NA, nrow(df_DatosUnicos_mod))
-confidence_key_2 <- rep(NA, nrow(df_DatosUnicos_mod))
-confidence_key_3 <- rep(NA, nrow(df_DatosUnicos_mod))
-confidence_key_4 <- rep(NA, nrow(df_DatosUnicos_mod))
-
-ExistingSubjects <- unique(df_exp_mod$sujetos)
-
-for(i in 1:nrow(df_DatosUnicos_mod)){
-  # confidence columns are created to iterate by subject
-  confidence_key_1_total <- 0
-  confidence_key_2_total <- 0
-  confidence_key_3_total <- 0
-  confidence_key_4_total <- 0
-  
-  df_prueba <- df_exp_mod[df_exp_mod$confidence_key =='1',]
-  confidence_key_1_total <- nrow(df_prueba[df_prueba$sujetos== ExistingSubjects[i],])
-  confidence_key_1[i] <- confidence_key_1_total
-  
-  df_prueba <- df_exp_mod[df_exp_mod$confidence_key =='2',]
-  confidence_key_2_total <- nrow(df_prueba[df_prueba$sujetos==ExistingSubjects[i],])
-  confidence_key_2[i] <- confidence_key_2_total
-  
-  df_prueba <- df_exp_mod[df_exp_mod$confidence_key =='3',]
-  confidence_key_3_total <- nrow(df_prueba[df_prueba$sujetos==ExistingSubjects[i],])
-  confidence_key_3[i] <- confidence_key_3_total
-  
-  df_prueba <- df_exp_mod[df_exp_mod$confidence_key =='4',]
-  confidence_key_4_total <- nrow(df_prueba[df_prueba$sujetos==ExistingSubjects[i],])
-  confidence_key_4[i] <- confidence_key_4_total
-}
-
-# Add the columns to df_DatosUnicos_mod
-df_DatosUnicos_mod$confidence_key_1 <- confidence_key_1
-df_DatosUnicos_mod$confidence_key_2 <- confidence_key_2
-df_DatosUnicos_mod$confidence_key_3 <- confidence_key_3
-df_DatosUnicos_mod$confidence_key_4 <- confidence_key_4
-
-## Get the sd and mean of confidence by subject
-media_confidence <- rep(NA, nrow(df_DatosUnicos_mod))
-sd_confidence <- rep(NA, nrow(df_DatosUnicos_mod))
-
-for(i in 1:nrow(df_DatosUnicos_mod)){
-  media_confidence[i] <- mean(df_exp_mod[df_exp_mod$sujetos==ExistingSubjects[i],"confidence_key"])
-  sd_confidence[i] <- sd(df_exp_mod[df_exp_mod$sujetos==ExistingSubjects[i],"confidence_key"])
-}
-
-df_DatosUnicos_mod$media_confidence <- media_confidence
-df_DatosUnicos_mod$sd_confidence <- sd_confidence
-
-####### Get the sd and mean of reaction times by subject in the discrimination task
-media_tr_discri <- rep(NA, nrow(df_DatosUnicos_mod))
-sd_tr_discri <- rep(NA, nrow(df_DatosUnicos_mod))
-
-for(i in 1:nrow(df_DatosUnicos_mod)){
-  media_tr_discri[i] <- mean(df_exp_mod[df_exp_mod$sujetos==ExistingSubjects[i],"t_ensayo_discriminacion"])
-  sd_tr_discri[i] <- sd(df_exp_mod[df_exp_mod$sujetos==ExistingSubjects[i],"t_ensayo_discriminacion"])
-}
-
-df_DatosUnicos_mod$media_tr_discri <- media_tr_discri
-df_DatosUnicos_mod$sd_tr_discri <- sd_tr_discri
-
-####### get the sd and mean of reaction times by subject in the confidence task
-media_tr_confi <- rep(NA, nrow(df_DatosUnicos_mod))
-sd_tr_confi <- rep(NA, nrow(df_DatosUnicos_mod))
-
-for(i in 1:nrow(df_DatosUnicos_mod)){
-  media_tr_confi[i] <- mean(df_exp_mod[df_exp_mod$sujetos==ExistingSubjects[i],"t_ensayo_confianza"])
-  sd_tr_confi[i] <- sd(df_exp_mod[df_exp_mod$sujetos==ExistingSubjects[i],"t_ensayo_confianza"])
-}
-
-df_DatosUnicos_mod$media_tr_confi <- media_tr_confi
-df_DatosUnicos_mod$sd_tr_confi <- sd_tr_confi
 
 ####### Inclusion criteria, data is not included in future analysis
 ## Comment / uncomment or modify filters as required

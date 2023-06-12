@@ -1,0 +1,111 @@
+---
+title: "Perceptual stability ilution"
+output: html_document
+date: "2023-06-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Import data
+
+```{r}
+
+# Read the .txt result
+root <- rprojroot::is_rstudio_project
+basename(getwd())
+
+filepath <- root$find_file("pilot/df_exp_filtered_mod.csv")
+df_exp <- read.csv(file = filepath)
+
+filepath <- root$find_file("pilot/df_NotExperimentData.csv")
+df_demographic <- read.csv(file = filepath)
+
+```
+
+## Explore both df
+
+Demographic df
+```{r}
+str(df_demographic)
+head(df_demographic)
+```
+
+Experiment df
+```{r}
+str(df_exp)
+head(df_exp)
+```
+
+
+## Filter by psychiatric condition and medication
+
+```{r}
+library(dplyr)
+
+df_demographic_filter <- df_demographic %>%
+  filter(AffectionPsycho_1 == "No") 
+
+paste(nrow(df_demographic) - nrow(df_demographic_filter)," participant/s were removed by psychiatric condition")
+
+df_demographic_filter <- df_demographic_filter %>%
+  filter(medication_1 == "No") 
+
+paste(nrow(df_demographic) - nrow(df_demographic_filter)," participant/s were removed by medication condition")
+
+## filter the participant also in df_exp
+
+df_exp_filter <- df_exp %>%
+  filter((participants %in% df_demographic_filter$participants))
+
+paste("Total participants after filter: ", length(unique(df_exp_filter$participants)))
+```
+
+
+## Exploratory analysis on AQ
+
+AQ total score
+```{r}
+# total score
+hist(df_demographic_filter$AQ)
+summary(df_demographic_filter$AQ)
+```
+
+AQ total score by sex
+```{r}
+
+# For male
+paste("For male: ")
+summary(df_demographic_filter[df_demographic_filter$sex == "Male",]$AQ)
+
+# For female
+paste("For female: ")
+summary(df_demographic_filter[df_demographic_filter$sex == "Female",]$AQ)
+```
+
+Inonsistent with previous literature (female:15.4; male: 17.8; Baron-Cohen et al., 2001).
+Not usual female scoring more than male on AQ.
+
+## Exploratory analysis on Attraction index
+
+"Attraction index was computed by calculating the ratio between the test rating (e.g., old test face) and the absolute difference between the two reference face ratings (e.g., young and old)." Manassi & Whitney, 2022.
+
+```{r}
+df_exp_filter %>%
+  group_by(stimulus) %>%
+  summarise(mean = mean(response), 
+            median = median(response),
+            se = sd(response)/sqrt(length(response)),
+            sd = sd(response))
+
+```
+It's kind of weird, because the mean shows that in the dot stimuli there is no apparent effect, but the median does show that there would be an apparent effect. Check the distribution, they may not be Gaussian.
+
+It is interesting to see that the two versions of the face stimulus do show differences between them, I don't know if they are significant, but you can see differences in mean and median. Check if significant differences are observed.
+
+
+Now, I'm going to get two attraction indexes per participant. One will be based on the face stimulus (fs1yo or fs2yo) of the test that was used with the participant, and the second one will be based on the dot stimulus.
+```{r}
+
+```
+

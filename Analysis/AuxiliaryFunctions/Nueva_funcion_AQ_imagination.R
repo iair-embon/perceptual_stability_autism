@@ -28,14 +28,14 @@ puntaje_AQ_imagination <- function (cant_sujetos,
     
     # Saco el puntaje del participante de acuerdo a sus respuestas
     for (i in 1:length(respuestas_AQ)){
-      if (i %in% disagree){
+      if (i %in% agree){
         if(respuestas_AQ[i]== 1){
           puntaje_AQ <- puntaje_AQ + 1
         }else if (respuestas_AQ[i]== 2){
           puntaje_AQ <- puntaje_AQ + 1
         }
       }
-      if (i %in% agree){
+      if (i %in% disagree){
         if(respuestas_AQ[i]==4){
           puntaje_AQ <- puntaje_AQ + 1
         }else if (respuestas_AQ[i]==3){
