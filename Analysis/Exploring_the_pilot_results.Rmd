@@ -86,9 +86,8 @@ summary(df_demographic_filter[df_demographic_filter$sex == "Female",]$AQ)
 Inonsistent with previous literature (female:15.4; male: 17.8; Baron-Cohen et al., 2001).
 Not usual female scoring more than male on AQ.
 
-## Exploratory analysis on Attraction index
+## Exploratory analysis on face/dots stimuli and Attraction index
 
-"Attraction index was computed by calculating the ratio between the test rating (e.g., old test face) and the absolute difference between the two reference face ratings (e.g., young and old)." Manassi & Whitney, 2022.
 
 ```{r}
 
@@ -131,8 +130,298 @@ df_exp_filter %>%
 
 It is interesting to see that the two versions of the face stimulus do show differences between them, I don't know if they are significant, but you can see differences in mean and median. Check if significant differences are observed.
 
+fs1yo vs fs2yo
+```{r}
+fs1yo <- df_exp_filter %>%
+  filter(stimulus == "videos/fs1yo.mp4")
+
+fs2yo <- df_exp_filter %>%
+  filter(stimulus == "videos/fs2yo.mp4")
+
+t.test(fs1yo$response,fs2yo$response)
+```
+
+fs1o vs fs2o
+```{r}
+fs1o <- df_exp_filter %>%
+  filter(stimulus == "videos/fs1o.mp4")
+
+fs2o <- df_exp_filter %>%
+  filter(stimulus == "videos/fs2o.mp4")
+
+t.test(fs1o$response,fs2o$response)
+```
+
+fs1y vs fs2y
+```{r}
+fs1y <- df_exp_filter %>%
+  filter(stimulus == "videos/fs1y.mp4")
+
+fs2y <- df_exp_filter %>%
+  filter(stimulus == "videos/fs2y.mp4")
+
+t.test(fs1y$response,fs2y$response)
+```
+
+There seemed to be differences, but these are not significant. Perhaps because of the size of the sd they present, compared to the difference in means.
+
+
 
 Now, I'm going to get two attraction indexes per participant. One will be based on the face stimulus (fs1yo or fs2yo) of the test that was used with the participant, and the second one will be based on the dot stimulus.
+
+DEFINITION 1
+"Attraction index was computed by calculating the ratio between the test rating (e.g., old test face) and the absolute difference between the two reference face ratings (e.g., young and old)." Manassi & Whitney, 2022.
+
+In general for dots
+```{r}
+test_stm_dot <- df_exp_filter %>%
+  filter(stimulus == "dot_40_60") %>%
+  select(response) 
+
+reference_few_dot <- df_exp_filter %>%
+  filter(stimulus == "dot_40") %>%
+  select(response) 
+
+reference_many_dot <- df_exp_filter %>%
+  filter(stimulus == "dot_60") %>%
+  select(response) 
+
+## with the mean
+print("with the mean: ")
+mean(test_stm_dot$response)/abs(mean(reference_few_dot$response) - mean(reference_many_dot$response))
+## with the median
+print("with the median: ")
+median(test_stm_dot$response)/abs(median(reference_few_dot$response) - median(reference_many_dot$response))
+
+```
+In general for faces
+```{r}
+test_stm_face <- df_exp_filter %>%
+  filter(stimulus == "videos/fs1yo.mp4" | stimulus == "videos/fs2yo.mp4") %>%
+  select(response) 
+
+reference_few_face <- df_exp_filter %>%
+  filter(stimulus == "videos/fs1y.mp4" | stimulus == "videos/fs2y.mp4") %>%
+  select(response) 
+
+reference_many_face <- df_exp_filter %>%
+  filter(stimulus == "videos/fs1o.mp4" | stimulus == "videos/fs2o.mp4") %>%
+  select(response) 
+
+## with the mean
+print("with the mean: ")
+mean(test_stm_face$response)/abs(mean(reference_few_face$response) - mean(reference_many_face$response))
+## with the median
+print("with the median: ")
+median(test_stm_face$response)/abs(median(reference_few_face$response) - median(reference_many_face$response))
+
+```
+
+Per participant for dots. 
+
+Here I can also observe two ways, and a decision to make. When I calculated de attraction index individually, I could use the individuals responses for the test stimuli and also the individuals responses for the reference stimuli (posibility 1). On the other hand, I could use the individuals responses for the test stimuli but the global mean responses for the reference stimuli (posibility 2). I will calculate attraction index based on both posibilities and look which one works better.
+
+Posibility 1
+```{r}
+dot_attraction_index_individual <- rep(NaN,nrow(df_demographic_filter))
+
+for (i in 1:nrow(df_demographic_filter)) {
+  
+  d_per_participat <- df_exp_filter %>%
+    filter(participants== unique(df_exp_filter$participants)[i])
+  
+  test_stm_dot_p <- d_per_participat %>%
+  filter(stimulus == "dot_40_60") %>%
+  select(response) 
+
+  reference_few_dot_p <- d_per_participat %>%
+    filter(stimulus == "dot_40") %>%
+    select(response) 
+  
+  reference_many_dot_p <- d_per_participat %>%
+    filter(stimulus == "dot_60") %>%
+    select(response) 
+  
+dot_attraction_index_individual[i] <- test_stm_dot_p$response/abs(reference_few_dot_p$response - reference_many_dot_p$response)
+}
+
+print(dot_attraction_index_individual)
+
+```
+
+I can observe that some results are inf. After look what happened, it seems that some participants gave the same response to the few reference stimuli and to the many reference stimuli. When R divides by 0, it shows inf as the results.
+
+Posibility 2 (less probably that it divides by 0)
+```{r}
+dot_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
+dot_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+
+for (i in 1:nrow(df_demographic_filter)) {
+  
+  d_per_participat <- df_exp_filter %>%
+    filter(participants== unique(df_exp_filter$participants)[i])
+  
+  test_stm_dot_p <- d_per_participat %>%
+  filter(stimulus == "dot_40_60") %>%
+  select(response) 
+  
+  dot_attraction_index_individual_mean[i] <- test_stm_dot_p$response/abs(mean(reference_few_dot$response) - mean(reference_many_dot$response))
+  
+  dot_attraction_index_individual_median[i] <- test_stm_dot_p$response/abs(median(reference_few_dot$response) - median(reference_many_dot$response))
+}
+
+print(dot_attraction_index_individual_mean)
+print(dot_attraction_index_individual_median)
+
+```
+The second posibility worked better. I will continue with this one.
+
+I will add the individual attraction index as a column
+```{r}
+df_demographic_filter$dot_attraction_index_individual_mean_d1 <- dot_attraction_index_individual_mean
+df_demographic_filter$dot_attraction_index_individual_median_d1 <- dot_attraction_index_individual_median
+```
+
+Individual attraction index for faces based on definition 1
+```{r}
+face_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
+face_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+
+for (i in 1:nrow(df_demographic_filter)) {
+  
+  d_per_participat <- df_exp_filter %>%
+    filter(participants== unique(df_exp_filter$participants)[i])
+  
+  test_stm_face_p <- d_per_participat %>%
+  filter(stimulus == "videos/fs1yo.mp4" |stimulus == "videos/fs2yo.mp4") %>%
+  select(response) 
+  
+  face_attraction_index_individual_mean[i] <- test_stm_face_p$response/abs(mean(reference_few_face$response) - mean(reference_many_face$response))
+  
+  face_attraction_index_individual_median[i] <- test_stm_face_p$response/abs(median(reference_few_face$response) - median(reference_many_face$response))
+}
+
+print(face_attraction_index_individual_mean)
+print(face_attraction_index_individual_median)
+
+```
+I adding the individual attraction index as a column
+```{r}
+df_demographic_filter$face_attraction_index_individual_mean_d1 <- face_attraction_index_individual_mean
+df_demographic_filter$face_attraction_index_individual_median_d1 <- face_attraction_index_individual_median
+```
+
+
+DEFINITION 2 of attraction index
+
+They also defined the attraction index in the following way (it is different with regard to the other definition):
+
+"As a measure of the stability illusion strength, we calculated the bias in age ratings toward the beginning of the movie as an attraction index. We computed the absolute difference between test and reference faces (e.g., old reference age − old test face) and divided that by the total age range (e.g., old reference face − young reference face; white circles in Fig. 1, A and B)." Manassi & Whitney, 2022 
+
+so:
+
+In general for dots
+```{r}
+## with the mean
+print("with the mean: ")
+abs(mean(test_stm_dot$response) - mean(reference_many_dot$response))/(mean(reference_many_dot$response) - mean(reference_few_dot$response))
+## with the median
+print("with the median: ")
+abs(median(test_stm_dot$response) - median(reference_many_dot$response))/(median(reference_many_dot$response) - median(reference_few_dot$response))
+```
+In general for faces
+```{r}
+## with the mean
+print("with the mean: ")
+abs(mean(test_stm_face$response) - mean(reference_many_face$response))/(mean(reference_many_face$response) - mean(reference_few_face$response))
+## with the median
+print("with the median: ")
+abs(median(test_stm_face$response) - median(reference_many_face$response))/(median(reference_many_face$response) - median(reference_few_face$response))
+
+```
+
+Per participant with the posibility 2 only - for faces
+```{r}
+face_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
+face_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+
+for (i in 1:nrow(df_demographic_filter)) {
+  
+  d_per_participat <- df_exp_filter %>%
+    filter(participants== unique(df_exp_filter$participants)[i])
+  
+  test_stm_face_p <- d_per_participat %>%
+  filter(stimulus == "videos/fs2yo.mp4" | stimulus == "videos/fs1yo.mp4") %>%
+  select(response) 
+  
+  face_attraction_index_individual_mean[i] <- abs(test_stm_face_p$response - mean(reference_many_face$response))/(mean(reference_many_face$response) - mean(reference_few_face$response))
+
+  
+   face_attraction_index_individual_median[i] <- abs(test_stm_face_p$response - median(reference_many_face$response))/(median(reference_many_face$response) - median(reference_few_face$response))
+}
+
+print(face_attraction_index_individual_mean)
+print(face_attraction_index_individual_median)
+
+```
+
+I will add the individual attraction index based on the definition 2 as a column
+```{r}
+df_demographic_filter$face_attraction_index_individual_mean_d2 <- face_attraction_index_individual_mean
+df_demographic_filter$face_attraction_index_individual_median_d2 <- face_attraction_index_individual_median
+```
+
+Per participant with the posibility 2 only - for dots
+```{r}
+dot_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
+dot_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+
+for (i in 1:nrow(df_demographic_filter)) {
+  
+  d_per_participat <- df_exp_filter %>%
+    filter(participants== unique(df_exp_filter$participants)[i])
+  
+  test_stm_dot_p <- d_per_participat %>%
+  filter(stimulus == "dot_40_60") %>%
+  select(response) 
+  
+  dot_attraction_index_individual_mean[i] <- abs(test_stm_dot_p$response - mean(reference_many_dot$response))/(mean(reference_many_dot$response) - mean(reference_few_dot$response))
+
+  
+   dot_attraction_index_individual_median[i] <- abs(test_stm_dot_p$response - median(reference_many_dot$response))/(median(reference_many_dot$response) - median(reference_few_dot$response))
+}
+
+print(dot_attraction_index_individual_mean)
+print(dot_attraction_index_individual_median)
+
+```
+
+I will add the individual attraction index based on the definition 2 as a column
+```{r}
+df_demographic_filter$dot_attraction_index_individual_mean_d2 <- dot_attraction_index_individual_mean
+df_demographic_filter$dot_attraction_index_individual_median_d2 <- dot_attraction_index_individual_median
+```
+
+
+## Exploring the relation between AQ and individual Attraction index
+
+
+```{r}
+## dots stimuli
+plot(density(df_demographic_filter$dot_attraction_index_individual_mean_d1), main = "dot_attraction_index_individual_mean_d1")
+plot(density(df_demographic_filter$dot_attraction_index_individual_median_d1), main = "dot_attraction_index_individual_median_d1")
+plot(density(df_demographic_filter$dot_attraction_index_individual_mean_d2), main = "dot_attraction_index_individual_mean_d2")
+plot(density(df_demographic_filter$dot_attraction_index_individual_median_d2), main = "dot_attraction_index_individual_median_d2")
+
+## face stimuli
+plot(density(df_demographic_filter$face_attraction_index_individual_mean_d1), main = "face_attraction_index_individual_mean_d1")
+plot(density(df_demographic_filter$face_attraction_index_individual_median_d1), main = "face_attraction_index_individual_median_d1")
+plot(density(df_demographic_filter$face_attraction_index_individual_mean_d2), main = "face_attraction_index_individual_mean_d2")
+plot(density(df_demographic_filter$face_attraction_index_individual_median_d2), main = "face_attraction_index_individual_median_d2")
+```
+The distribution of individual index attraction are not normal.
+
+Normalizing variables
 ```{r}
 
 ```
