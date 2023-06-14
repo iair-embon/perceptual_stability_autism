@@ -91,6 +91,7 @@ Not usual female scoring more than male on AQ.
 "Attraction index was computed by calculating the ratio between the test rating (e.g., old test face) and the absolute difference between the two reference face ratings (e.g., young and old)." Manassi & Whitney, 2022.
 
 ```{r}
+
 df_exp_filter %>%
   group_by(stimulus) %>%
   summarise(mean = mean(response), 
@@ -100,6 +101,33 @@ df_exp_filter %>%
 
 ```
 It's kind of weird, because the mean shows that in the dot stimuli there is no apparent effect, but the median does show that there would be an apparent effect. Check the distribution, they may not be Gaussian.
+
+```{r}
+library(ggplot2)
+
+df_exp_filter %>%
+  filter(stimulus == "dot_40_60") %>%
+  ggplot(aes(response)) +
+  geom_histogram(binwidth = 5, fill = "grey", color = "black") +
+  ggtitle("dot_40_60 Response Histogram") +
+  xlab("Response") +
+  ylab("Count") 
+
+```
+Now it makes sense. The distribution is not Gaussian, there are some answers out of 100. Could these be considered outliers?
+
+I test the other distributions
+```{r}
+df_exp_filter %>%
+  ggplot(aes(response)) + 
+  geom_histogram(binwidth = 5, fill = "blue", color = "black") +
+  ggtitle("Response Histogram") +
+  xlab("Response") +
+  ylab("Count") +
+  facet_wrap(~ stimulus) 
+
+```
+
 
 It is interesting to see that the two versions of the face stimulus do show differences between them, I don't know if they are significant, but you can see differences in mean and median. Check if significant differences are observed.
 
