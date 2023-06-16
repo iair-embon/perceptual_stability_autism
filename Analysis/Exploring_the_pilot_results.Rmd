@@ -462,27 +462,104 @@ Show the data frame new
 str(d_faces)
 head(d_faces)
 ```
+Exploring the relationship between response based on face_type (face 1 or 2) and face_age (morph, old or young   )
+```{r}
+ggplot(d_faces, aes(x = face_type, y = response)) +
+  geom_point() +  
+  geom_smooth(method = "lm") + 
+  facet_wrap(~ face_age) +   
+  scale_x_continuous(breaks = c(0, 1)) 
+```
+
+It doesn't seems to be differences based on the face_type for none of the face_age
+
+Now only the response and face_age
+```{r}
+library(vioplot)
+
+
+with(d_faces , vioplot( 
+  response[face_age=="morph"] , response[face_age=="old"], response[face_age=="young"],  
+  col=rgb(0.1,0.4,0.7,0.7) , names=c("morph","old","young") 
+))
+
+```
+
+```{r}
+ggplot(d_faces, aes(x = response, fill = face_age)) + 
+  geom_density(alpha = 0.5)
+```
 
 
 
-Now I will run the regression model
+Now I will run the frequentist regression model
 
+model 1
 ```{r}
 m_1 <- lm(response ~ face_type + face_age, data= d_faces)
 summary(m_1)
 ```
+Ok. When predict responses, the face_type (1 or 2) is not a significant predictor. Good new
 
-Now bayes way
+So, we can take it out?
+
+model 2
+```{r}
+m_2 <- lm(response ~  face_age, data= d_faces)
+summary(m_2)
+```
+Wow, so there is an effect of face_age. Between all categories. More good news.
+
+## Now bayes way
+
+Libraries
 ```{r}
 library(bayesrules)
+library(tidyverse)
+library(rstan)
 library(rstanarm)
 library(bayesplot)
+library(tidybayes)
+library(janitor)
+library(broom.mixed)
+```
 
-m_1_bayesian <- stan_glm(
-  response ~ face_type + face_age, 
-  data= d_faces, family = gaussian,
-  prior_intercept = normal(25,10),
-  prior = normal(0,2.5, autoscale = TRUE),
+Lets continue with model 2
+
+The prior for the intercept will be based on the original paper of manassi and whitney 2022.
+The young face of face 1 was rating as 13 years old
+The old face of face 1 was rating as 25.5 years old
+The morph face of face 1 was rating as 20.2 years old
+
+The young face of face 2 (high noise) was rating as 14.8 years old
+The old face of face 2 (high noise) was rating as 23.8 years old
+The morph face of face 2 was rating as 20.3 years old
+
+We have no report of the standar deviation of these means, I will use weakly informative prior.
+
+In the model 2 (response ~  face_age), the intercept is the mean of the response when x is 0 (the morph stimuli is the baseline here). So, combining both mean of the morph stimulus (face 1 and 2) we have a mean of 20.25 for the morph stimuli 
+
+I will see if the prior is ok with a sd of 10 for the intercept
+```{r}
+plot_normal(20.25,10)
+```
+We have negative results as possible but they are unlikely.
+
+We realized that can take out the young face in this way of observe the bias. It is useful when we want to calculate the attraction index as defined by manassi and whytney 2022, but not now
+```{r}
+d_faces_NotYoung <- d_faces %>%
+  filter(!(face_age == "young"))
+```
+
+
+
+```{r}
+
+m_2_bayesian <- stan_glm(
+  response ~  face_age, 
+  data= d_faces_NotYoung, family = gaussian,
+  prior_intercept = normal(20.25,10),
+  prior = lognormal_lpdf(0,1, autoscale = TRUE),
   prior_aux = exponential(1, autoscale = TRUE),
   chains = 4, iter = 5000*2, seed = 1948,
   prior_PD = TRUE
@@ -490,12 +567,41 @@ m_1_bayesian <- stan_glm(
 
 
 ```
+
+prior check
+```{r}
+# Prior specification
+prior_summary(m_2_bayesian)
+```
+
+MCMC diagnostics
+
+```{r}
+mcmc_trace(m_2_bayesian, size = 0.1)
+mcmc_dens_overlay(m_2_bayesian)
+mcmc_acf(m_2_bayesian)
+neff_ratio(m_2_bayesian)
+rhat(m_2_bayesian)
+```
+
+
 Exploring postriors
 ```{r}
-head(as.data.frame(m_1_bayesian),10)
+head(as.data.frame(m_2_bayesian),10)
 ```
 
 ```{r}
+posterior_interval(m_2_bayesian, prob = 0.80)
+```
 
+```{r}
+pp_check(m_2_bayesian)
+```
+
+
+```{r}
+mcmc_areas(m_2_bayesian) +
+  ggplot2::scale_y_discrete(labels = c("morph", "old", "sigma")) + 
+  xlab("response")
 ```
 
