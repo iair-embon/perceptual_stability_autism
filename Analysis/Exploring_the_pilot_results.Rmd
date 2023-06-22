@@ -488,12 +488,6 @@ with(d_faces , vioplot(
 
 ```
 
-```{r}
-ggplot(d_faces, aes(x = response, fill = face_age)) + 
-  geom_density(alpha = 0.5)
-```
-
-
 
 Now I will run the frequentist regression model
 
@@ -512,6 +506,19 @@ m_2 <- lm(response ~  face_age, data= d_faces)
 summary(m_2)
 ```
 Wow, so there is an effect of face_age. Between all categories. More good news.
+
+model 3 (with interactions)
+```{r}
+
+d_faces$AQ <- rep(df_demographic_filter$AQ, each = 3)
+
+d_faces_NotFace1 <- d_faces %>%
+  filter(!(face_type == 1))
+
+m_3 <- lm(response ~  face_age* scale(AQ), data= d_faces_NotFace1)
+summary(m_3)
+```
+
 
 ## Now bayes way
 
@@ -559,16 +566,17 @@ d_faces_NotYoung <- d_faces %>%
 ```{r}
 
 m_2_bayesian <- stan_glm(
-  response ~  face_age, 
+  log(response) ~  face_age, 
   data= d_faces_NotYoung, family = gaussian,
   prior_intercept = normal(20.25,10),
-  prior = log(0,1),
+  prior = normal(0,2),
   prior_aux = exponential(1, autoscale = TRUE),
   chains = 4, iter = 5000*2, seed = 1948,
-  prior_PD = TRUE
+  prior_PD = FALSE
 )
 
-
+## me tira error, http://mc-stan.org/rstanarm/reference/priors.html muestra que no existe
+## la posibilidad de elegir priors lognormal o halfnomal
 ```
 
 prior check
@@ -593,9 +601,12 @@ Exploring postriors
 head(as.data.frame(m_2_bayesian),10)
 ```
 
+Posterior summary statistics
 ```{r}
-posterior_interval(m_2_bayesian, prob = 0.80)
+tidy(m_2_bayesian, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.80)
 ```
+
 
 ```{r}
 pp_check(m_2_bayesian)

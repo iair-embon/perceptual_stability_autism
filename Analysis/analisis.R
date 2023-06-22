@@ -1,6 +1,6 @@
 library(tidyverse)
-d1 <- read_csv("df_exp_filtered_mod.csv")
-d2 <- read_csv("df_NotExperimentData.csv")
+d1 <- df_exp_filter
+d2 <- df_demographic_filter
 
 # junto los datos
 d  <- left_join(d1, d2, by = "participants" )
