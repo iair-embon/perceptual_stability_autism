@@ -137,7 +137,8 @@ fs1yo <- df_exp_filter %>%
 fs2yo <- df_exp_filter %>%
   filter(stimulus == "videos/fs2yo.mp4")
 
-t.test(fs1yo$response,fs2yo$response)
+# U the Mann Whitney
+wilcox.test(fs1yo$response,fs2yo$response)
 ```
 
 fs1o vs fs2o
@@ -148,7 +149,8 @@ fs1o <- df_exp_filter %>%
 fs2o <- df_exp_filter %>%
   filter(stimulus == "videos/fs2o.mp4")
 
-t.test(fs1o$response,fs2o$response)
+# U the Mann Whitney
+wilcox.test(fs1o$response,fs2o$response)
 ```
 
 fs1y vs fs2y
@@ -159,7 +161,8 @@ fs1y <- df_exp_filter %>%
 fs2y <- df_exp_filter %>%
   filter(stimulus == "videos/fs2y.mp4")
 
-t.test(fs1y$response,fs2y$response)
+# U the Mann Whitney
+wilcox.test(fs1y$response,fs2y$response)
 ```
 
 There seemed to be differences, but these are not significant. Perhaps because of the size of the sd they present, compared to the difference in means.
@@ -559,7 +562,7 @@ m_2_bayesian <- stan_glm(
   response ~  face_age, 
   data= d_faces_NotYoung, family = gaussian,
   prior_intercept = normal(20.25,10),
-  prior = lognormal_lpdf(0,1, autoscale = TRUE),
+  prior = log(0,1),
   prior_aux = exponential(1, autoscale = TRUE),
   chains = 4, iter = 5000*2, seed = 1948,
   prior_PD = TRUE
