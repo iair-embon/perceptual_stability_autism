@@ -5,7 +5,7 @@ date: "2023-06-12"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 ## Import data
 
@@ -116,13 +116,26 @@ Now it makes sense. The distribution is not Gaussian, there are some answers out
 
 I test the other distributions
 ```{r}
-df_exp_filter %>%
+p <- df_exp_filter %>% 
   ggplot(aes(response)) + 
   geom_histogram(binwidth = 5, fill = "blue", color = "black") +
-  ggtitle("Response Histogram") +
-  xlab("Response") +
+  ggtitle("Response Histogram") + 
+  xlab("Response") + 
   ylab("Count") +
   facet_wrap(~ stimulus) 
+
+# Calcula media y mediana por grupo  
+summarized <- df_exp_filter %>% 
+  group_by(stimulus) %>% 
+  summarize(
+    mean = mean(response), 
+    median = median(response)
+  )
+
+# Agrega las líneas verticales al gráfico base
+p + 
+  geom_vline(data = summarized, aes(xintercept = mean), color = "black", linetype = "solid") +
+  geom_vline(data = summarized, aes(xintercept = median), color = "black", linetype = "dashed") 
 
 ```
 
@@ -409,27 +422,48 @@ df_demographic_filter$dot_attraction_index_individual_median_d2 <- dot_attractio
 
 
 ```{r}
-## dots stimuli
-plot(density(df_demographic_filter$dot_attraction_index_individual_mean_d1), main = "dot_attraction_index_individual_mean_d1")
-plot(density(df_demographic_filter$dot_attraction_index_individual_median_d1), main = "dot_attraction_index_individual_median_d1")
-plot(density(df_demographic_filter$dot_attraction_index_individual_mean_d2), main = "dot_attraction_index_individual_mean_d2")
-plot(density(df_demographic_filter$dot_attraction_index_individual_median_d2), main = "dot_attraction_index_individual_median_d2")
+d <- data.frame(attractionIndex = c(df_demographic_filter$dot_attraction_index_individual_mean_d1,
+                                    df_demographic_filter$dot_attraction_index_individual_median_d1,
+                                    df_demographic_filter$dot_attraction_index_individual_mean_d2,
+                                    df_demographic_filter$dot_attraction_index_individual_median_d2,
+                                    df_demographic_filter$face_attraction_index_individual_mean_d1,
+                                    df_demographic_filter$face_attraction_index_individual_median_d1,
+                                    df_demographic_filter$face_attraction_index_individual_mean_d2,
+                                    df_demographic_filter$face_attraction_index_individual_median_d2
+                                    ),
+                type_stim = c(rep("Dot", nrow(df_demographic_filter)*4),
+                              rep("Face", nrow(df_demographic_filter)*4)),
+                DefinitionattractionIndex = c(rep("option_1",nrow(df_demographic_filter)*2),
+                                              rep("option_2",nrow(df_demographic_filter)*2),
+                                              rep("option_1",nrow(df_demographic_filter)*2),
+                                              rep("option_2",nrow(df_demographic_filter)*2)),
+                CentralMeasure = c(rep("mean",nrow(df_demographic_filter)),
+                                   rep("median",nrow(df_demographic_filter)),
+                                   rep("mean",nrow(df_demographic_filter)),
+                                   rep("median",nrow(df_demographic_filter)),
+                                   rep("mean",nrow(df_demographic_filter)),
+                                   rep("median",nrow(df_demographic_filter)),
+                                   rep("mean",nrow(df_demographic_filter)),
+                                   rep("median",nrow(df_demographic_filter))))
+                                           
 
-## face stimuli
-plot(density(df_demographic_filter$face_attraction_index_individual_mean_d1), main = "face_attraction_index_individual_mean_d1")
-plot(density(df_demographic_filter$face_attraction_index_individual_median_d1), main = "face_attraction_index_individual_median_d1")
-plot(density(df_demographic_filter$face_attraction_index_individual_mean_d2), main = "face_attraction_index_individual_mean_d2")
-plot(density(df_demographic_filter$face_attraction_index_individual_median_d2), main = "face_attraction_index_individual_median_d2")
+ggplot(data = d, aes(y = attractionIndex, x = CentralMeasure, fill = DefinitionattractionIndex)) + 
+  geom_violin() +
+  facet_wrap(~ type_stim) + 
+  theme_classic()+
+  ggtitle("Individual attraction Index") +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
 ```
-The distribution of individual index attraction are not normal.
+The distribution of individual index attraction seems not normal.
 
-Normalizing variables
-```{r}
+## Relationship between AQ and attraction index
 
-```
+# Some visualization 
 
-
-## Now I will try another way to see the bias, after speak with pablo and guille
+Faces and AQ
 
 First of all, I will modify the df
 
@@ -465,6 +499,93 @@ Show the data frame new
 str(d_faces)
 head(d_faces)
 ```
+
+```{r}
+
+d_faces$AQ <- rep(df_demographic_filter$AQ, each = 3)
+
+d_faces %>% 
+  ggplot(aes(x = AQ, y = response, color = face_age)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) + 
+  facet_wrap(~ face_type) + 
+  theme_classic()
+
+```
+The face 0 and face 1 behave differently regarding AQ (except for the young face).
+
+```{r}
+ggplot(data = d_faces, aes(y = response, x = face_age, fill = face_age)) + 
+  geom_boxplot() + 
+  facet_wrap(~ face_type) + 
+  theme_classic()
+```
+Face 1 does not maximize the effect we are looking for. There does not seem to be much difference between the age reported for young - morph - old. This face was created with a video game program, it doesn't look very real. Think about whether to discard/replace it.
+
+We will use the spearman correlation
+```{r}
+
+print("AQ - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+
+
+Dots and AQ
+
+```{r}
+## crear un data frame para mostrar cuatro lineas, segun media y mediana y segun definicion 1 y 2.
+d_dots <- data.frame(AQ = rep(df_demographic_filter$AQ, times= nrow(df_demographic_filter)*4),
+                     AttractionIndex = c(df_demographic_filter$dot_attraction_index_individual_mean_d1,
+                                         df_demographic_filter$dot_attraction_index_individual_mean_d2,
+                                         df_demographic_filter$dot_attraction_index_individual_median_d1,
+                                         df_demographic_filter$dot_attraction_index_individual_median_d2),
+                     centralMeasure = c(rep("mean",nrow(df_demographic_filter)*2),
+                                        rep("median",nrow(df_demographic_filter)*2)),
+                     optionAttractionIndex = c(rep("option_1",nrow(df_demographic_filter)),
+                                        rep("option_2",nrow(df_demographic_filter)),
+                                        rep("option_1",nrow(df_demographic_filter)),
+                                        rep("option_2",nrow(df_demographic_filter)))
+                     )
+
+d_dots %>% 
+  ggplot(aes(x = AQ, y = AttractionIndex, color = optionAttractionIndex)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) + 
+  facet_wrap(~ centralMeasure)+
+  theme_classic()
+
+
+```
+Attraction index options 1 and 2 do not appear to behave equally with respect to AQ.
+
+We will use the spearman correlation
+```{r}
+
+print("AQ - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
+```
+
+
+## Now I will try another way to see the bias, after speak with pablo and guille
+
 Exploring the relationship between response based on face_type (face 1 or 2) and face_age (morph, old or young   )
 ```{r}
 ggplot(d_faces, aes(x = face_type, y = response)) +
@@ -495,10 +616,12 @@ model 1
 ```{r}
 m_1 <- lm(response ~ face_type + face_age, data= d_faces)
 summary(m_1)
-```
-Ok. When predict responses, the face_type (1 or 2) is not a significant predictor. Good new
 
-So, we can take it out?
+
+```
+Ok. When predicting responses, the face_type (1 or 2) is not a significant predictor. Good new
+
+So, can we take it out?
 
 model 2
 ```{r}
@@ -510,7 +633,6 @@ Wow, so there is an effect of face_age. Between all categories. More good news.
 model 3 (with interactions)
 ```{r}
 
-d_faces$AQ <- rep(df_demographic_filter$AQ, each = 3)
 
 d_faces_NotFace1 <- d_faces %>%
   filter(!(face_type == 1))
@@ -518,7 +640,13 @@ d_faces_NotFace1 <- d_faces %>%
 m_3 <- lm(response ~  face_age* scale(AQ), data= d_faces_NotFace1)
 summary(m_3)
 ```
+model 4 
+```{r}
 
+
+m_3 <- lm(response ~  face_type* face_age* scale(AQ), data= d_faces)
+summary(m_3)
+```
 
 ## Now bayes way
 
