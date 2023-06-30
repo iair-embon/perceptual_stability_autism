@@ -459,6 +459,27 @@ ggplot(data = d, aes(y = attractionIndex, x = CentralMeasure, fill = Definitiona
 ```
 The distribution of individual index attraction seems not normal.
 
+Is there correlation between AI of face aging and of numerosity? We will use the spearman correlation.
+```{r}
+print("Relation between: Individual attraction Index (mean) based on Option 1 of attraction Index (face vs dots): ")
+cor.test(df_demographic_filter$dot_attraction_index_individual_mean_d1,
+         df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("Relation between: Individual attraction Index (median) based on Option 1 of attraction Index (face vs dots): ")
+cor.test(df_demographic_filter$dot_attraction_index_individual_median_d1,
+         df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("Relation between: Individual attraction Index (mean) based on Option 2 of attraction Index (face vs dots): ")
+cor.test(df_demographic_filter$dot_attraction_index_individual_mean_d2,
+         df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("Relation between: Individual attraction Index (median) based on Option 2 of attraction Index (face vs dots): ")
+cor.test(df_demographic_filter$dot_attraction_index_individual_median_d2,
+         df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+
+
+
 ## Relationship between AQ and attraction index
 
 # Some visualization 
@@ -512,6 +533,8 @@ d_faces %>%
   theme_classic()
 
 ```
+
+
 The face 0 and face 1 behave differently regarding AQ (except for the young face).
 
 ```{r}
@@ -522,7 +545,21 @@ ggplot(data = d_faces, aes(y = response, x = face_age, fill = face_age)) +
 ```
 Face 1 does not maximize the effect we are looking for. There does not seem to be much difference between the age reported for young - morph - old. This face was created with a video game program, it doesn't look very real. Think about whether to discard/replace it.
 
-We will use the spearman correlation
+Instead of AQ, we examine the relationship with AQ Attention to Details subscale
+```{r}
+
+d_faces$AQ_attencion_detail <- rep(df_demographic_filter$AQ_attencion_detail, each = 3)
+
+d_faces %>% 
+  ggplot(aes(x = AQ_attencion_detail, y = response, color = face_age)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) + 
+  facet_wrap(~ face_type) + 
+  theme_classic()
+
+```
+
+We will use the spearman correlation to test AQ vs attraction index
 ```{r}
 
 print("AQ - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
@@ -544,6 +581,7 @@ Dots and AQ
 ```{r}
 ## crear un data frame para mostrar cuatro lineas, segun media y mediana y segun definicion 1 y 2.
 d_dots <- data.frame(AQ = rep(df_demographic_filter$AQ, times= nrow(df_demographic_filter)*4),
+                     AQ_attencion_detail = rep(df_demographic_filter$AQ_attencion_detail, times= nrow(df_demographic_filter)*4),
                      AttractionIndex = c(df_demographic_filter$dot_attraction_index_individual_mean_d1,
                                          df_demographic_filter$dot_attraction_index_individual_mean_d2,
                                          df_demographic_filter$dot_attraction_index_individual_median_d1,
@@ -565,7 +603,20 @@ d_dots %>%
 
 
 ```
+
 Attraction index options 1 and 2 do not appear to behave equally with respect to AQ.
+
+Exploring attraction index with AQ_attention_detail
+```{r}
+d_dots %>% 
+  ggplot(aes(x = AQ_attencion_detail, y = AttractionIndex, color = optionAttractionIndex)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) + 
+  facet_wrap(~ centralMeasure)+
+  theme_classic()
+```
+
+
 
 We will use the spearman correlation
 ```{r}
@@ -582,6 +633,172 @@ cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_in
 print("AQ - Individual attraction Index (median) based on Option 2 of attraction Index: ")
 cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
 ```
+
+
+Non significant correlation. Now I will try with the subscales.
+
+AQ Social Subscale for faces
+```{r}
+
+print("AQ Social subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ Social subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ Social subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ  Social subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ Attentional Swithces Subscale for faces
+```{r}
+
+print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ Attention to Detail Subscale for faces
+```{r}
+
+print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+AQ communication Subscale for faces
+```{r}
+
+print("AQ communication subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ communication subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ communication subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ communication subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ imagination Subscale for faces
+```{r}
+
+print("AQ imagination subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ imagination subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ imagination subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ imagination subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ Social Subscale for dots
+```{r}
+
+print("AQ Social subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ Social subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ Social subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ  Social subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ Attentional Swithces Subscale for dots
+```{r}
+
+print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ Attention to Detail Subscale for dots
+```{r}
+
+print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
+```
+AQ communication Subscale for dots
+```{r}
+
+print("AQ communication subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ communication subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ communication subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ communication subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
+```
+
+AQ imagination Subscale for dots
+```{r}
+
+print("AQ imagination subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
+
+print("AQ imagination subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
+
+print("AQ imagination subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
+
+print("AQ imagination subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
+cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
+```
+
+```{r}
+
+```
+
 
 
 ## Now I will try another way to see the bias, after speak with pablo and guille
@@ -646,6 +863,45 @@ model 4
 
 m_3 <- lm(response ~  face_type* face_age* scale(AQ), data= d_faces)
 summary(m_3)
+```
+
+
+## Now the same for dots
+
+
+```{r}
+d_dots_regression <- df_exp_filter %>%
+  filter(stimulus == "dot_40_60" |
+           stimulus == "dot_60" |
+           stimulus == "dot_40") 
+
+d_dots_regression$AQ <- rep(df_demographic_filter$AQ, each = 3)
+d_dots_regression$AQ_attention_detail <- rep(df_demographic_filter$AQ_attencion_detail, each = 3)
+
+
+# Reorder the categorical variable
+d_dots_regression$stimulus <- as.factor(d_dots_regression$stimulus)
+d_dots_regression <- d_dots_regression %>%
+  mutate(stimulus = relevel(stimulus, ref = "dot_40_60"))
+```
+
+model 1
+```{r}
+m_1_dots <- lm(response ~  stimulus, data= d_dots_regression)
+summary(m_1_dots)
+```
+
+
+model 2 - m_1_dots but with AQ
+```{r}
+m_2_dots <- lm(response ~  stimulus*AQ, data= d_dots_regression)
+summary(m_2_dots)
+```
+
+model 3 - m_1_dots but with AQ
+```{r}
+m_3_dots <- lm(response ~  stimulus*AQ_attention_detail, data= d_dots_regression)
+summary(m_3_dots)
 ```
 
 ## Now bayes way
