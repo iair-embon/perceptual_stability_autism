@@ -581,6 +581,69 @@ with(d_faces , vioplot(
 ```
 
 
+I will run a graphic asked by yuval
+```{r}
+
+d_dots_regression <- df_exp %>%
+  filter(stimulus == "dot_40_60" |
+           stimulus == "dot_60" |
+           stimulus == "dot_40") 
+
+p <- d_dots_regression %>% 
+  ggplot(aes(response)) + 
+  geom_histogram( fill = "blue", color = "black") +
+  ggtitle("Response Histogram") + 
+  xlab("Response") + 
+  ylab("Count") +
+  facet_wrap(~ stimulus) 
+
+# Calcula media y mediana por grupo  
+summarized <- d_dots_regression %>% 
+  group_by(stimulus) %>% 
+  summarize(
+    mean = mean(response), 
+    median = median(response)
+  )
+
+# Agrega las líneas verticales al gráfico base
+p + 
+  geom_vline(data = summarized, aes(xintercept = mean), color = "black", linetype = "solid") +
+  geom_vline(data = summarized, aes(xintercept = median), color = "black", linetype = "dashed") 
+```
+
+```{r}
+
+d_faces_plot <- df_exp %>%
+  filter(stimulus == "videos/fs1yo.mp4" |
+           stimulus == "videos/fs2yo.mp4" |
+           stimulus == "videos/fs1y.mp4" |
+           stimulus == "videos/fs2y.mp4" |
+           stimulus == "videos/fs1o.mp4" |
+           stimulus == "videos/fs2o.mp4") 
+
+p <- d_faces_plot %>% 
+  ggplot(aes(response)) + 
+  geom_histogram( fill = "blue", color = "black") +
+  ggtitle("Response Histogram") + 
+  xlab("Response") + 
+  ylab("Count") +
+  facet_wrap(~ stimulus) 
+
+# Calcula media y mediana por grupo  
+summarized <- d_faces_plot %>% 
+  group_by(stimulus) %>% 
+  summarize(
+    mean = mean(response), 
+    median = median(response)
+  )
+
+# Agrega las líneas verticales al gráfico base
+p + 
+  geom_vline(data = summarized, aes(xintercept = mean), color = "black", linetype = "solid") +
+  geom_vline(data = summarized, aes(xintercept = median), color = "black", linetype = "dashed") 
+```
+
+
 Now I will run the frequentist regression model
 
 model 1
@@ -603,8 +666,6 @@ Wow, so there is an effect of face_age. Between all categories. More good news.
 
 model 3 (with interactions)
 ```{r}
-
-
 d_faces_NotFace1 <- d_faces %>%
   filter(!(face_type == 1))
 
@@ -613,15 +674,11 @@ summary(m_3)
 ```
 model 4 
 ```{r}
-
-
-m_3 <- lm(response ~  face_type* face_age* scale(AQ), data= d_faces)
-summary(m_3)
+m_4 <- lm(response ~  face_type* face_age* scale(AQ), data= d_faces)
+summary(m_4)
 ```
 
-
 ## Now the same for dots
-
 
 ```{r}
 d_dots_regression <- df_exp %>%
