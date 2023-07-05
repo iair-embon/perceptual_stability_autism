@@ -10,65 +10,39 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ## Import data
 
 ```{r}
-
-# Read the .txt result
 root <- rprojroot::is_rstudio_project
 basename(getwd())
 
-filepath <- root$find_file("pilot/df_exp_filtered_mod.csv")
-df_exp <- read.csv(file = filepath)
+# load dataframe 
+filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_long.Rda")
+load(file= filepath)
 
-filepath <- root$find_file("pilot/df_NotExperimentData.csv")
-df_demographic <- read.csv(file = filepath)
-
+df_exp <- df_exp_filter_long
 ```
 
-## Explore both df
-
-Demographic df
-```{r}
-str(df_demographic)
-head(df_demographic)
-```
-
-Experiment df
+## Explore df
 ```{r}
 str(df_exp)
 head(df_exp)
 ```
 
-
-## Filter by psychiatric condition and medication
+## Exploratory analysis on AQ
 
 ```{r}
 library(dplyr)
+# grouped df
+df_exp_grouped <- df_exp %>% 
+  group_by(participants) %>%
+  summarise(across(everything(), first))
 
-df_demographic_filter <- df_demographic %>%
-  filter(AffectionPsycho_1 == "No") 
-
-paste(nrow(df_demographic) - nrow(df_demographic_filter)," participant/s were removed by psychiatric condition")
-
-df_demographic_filter <- df_demographic_filter %>%
-  filter(medication_1 == "No") 
-
-paste(nrow(df_demographic) - nrow(df_demographic_filter)," participant/s were removed by medication condition")
-
-## filter the participant also in df_exp
-
-df_exp_filter <- df_exp %>%
-  filter((participants %in% df_demographic_filter$participants))
-
-paste("Total participants after filter: ", length(unique(df_exp_filter$participants)))
 ```
 
-
-## Exploratory analysis on AQ
 
 AQ total score
 ```{r}
 # total score
-hist(df_demographic_filter$AQ)
-summary(df_demographic_filter$AQ)
+hist(df_exp_grouped$AQ)
+summary(df_exp_grouped$AQ)
 ```
 
 AQ total score by sex
@@ -76,11 +50,11 @@ AQ total score by sex
 
 # For male
 paste("For male: ")
-summary(df_demographic_filter[df_demographic_filter$sex == "Male",]$AQ)
+summary(df_exp_grouped[df_exp_grouped$sex == "Male",]$AQ)
 
 # For female
 paste("For female: ")
-summary(df_demographic_filter[df_demographic_filter$sex == "Female",]$AQ)
+summary(df_exp_grouped[df_exp_grouped$sex == "Female",]$AQ)
 ```
 
 Inonsistent with previous literature (female:15.4; male: 17.8; Baron-Cohen et al., 2001).
@@ -89,8 +63,7 @@ Not usual female scoring more than male on AQ.
 ## Exploratory analysis on face/dots stimuli
 
 ```{r}
-
-df_exp_filter %>%
+df_exp %>%
   group_by(stimulus) %>%
   summarise(mean = mean(response), 
             median = median(response),
@@ -103,7 +76,7 @@ It's kind of weird, because the mean shows that in the dot stimuli there is no a
 ```{r}
 library(ggplot2)
 
-df_exp_filter %>%
+df_exp %>%
   filter(stimulus == "dot_40_60") %>%
   ggplot(aes(response)) +
   geom_histogram(binwidth = 5, fill = "grey", color = "black") +
@@ -116,7 +89,7 @@ Now it makes sense. The distribution is not Gaussian, there are some answers out
 
 I test the other distributions
 ```{r}
-p <- df_exp_filter %>% 
+p <- df_exp %>% 
   ggplot(aes(response)) + 
   geom_histogram(binwidth = 5, fill = "blue", color = "black") +
   ggtitle("Response Histogram") + 
@@ -125,7 +98,7 @@ p <- df_exp_filter %>%
   facet_wrap(~ stimulus) 
 
 # Calcula media y mediana por grupo  
-summarized <- df_exp_filter %>% 
+summarized <- df_exp %>% 
   group_by(stimulus) %>% 
   summarize(
     mean = mean(response), 
@@ -144,10 +117,10 @@ It is interesting to see that the two versions of the face stimulus do show diff
 
 fs1yo vs fs2yo
 ```{r}
-fs1yo <- df_exp_filter %>%
+fs1yo <- df_exp %>%
   filter(stimulus == "videos/fs1yo.mp4")
 
-fs2yo <- df_exp_filter %>%
+fs2yo <- df_exp %>%
   filter(stimulus == "videos/fs2yo.mp4")
 
 # U the Mann Whitney
@@ -156,10 +129,10 @@ wilcox.test(fs1yo$response,fs2yo$response)
 
 fs1o vs fs2o
 ```{r}
-fs1o <- df_exp_filter %>%
+fs1o <- df_exp %>%
   filter(stimulus == "videos/fs1o.mp4")
 
-fs2o <- df_exp_filter %>%
+fs2o <- df_exp %>%
   filter(stimulus == "videos/fs2o.mp4")
 
 # U the Mann Whitney
@@ -168,10 +141,10 @@ wilcox.test(fs1o$response,fs2o$response)
 
 fs1y vs fs2y
 ```{r}
-fs1y <- df_exp_filter %>%
+fs1y <- df_exp %>%
   filter(stimulus == "videos/fs1y.mp4")
 
-fs2y <- df_exp_filter %>%
+fs2y <- df_exp %>%
   filter(stimulus == "videos/fs2y.mp4")
 
 # U the Mann Whitney
@@ -189,15 +162,15 @@ DEFINITION 1
 
 In general for dots
 ```{r}
-test_stm_dot <- df_exp_filter %>%
+test_stm_dot <- df_exp %>%
   filter(stimulus == "dot_40_60") %>%
   select(response) 
 
-reference_few_dot <- df_exp_filter %>%
+reference_few_dot <- df_exp %>%
   filter(stimulus == "dot_40") %>%
   select(response) 
 
-reference_many_dot <- df_exp_filter %>%
+reference_many_dot <- df_exp %>%
   filter(stimulus == "dot_60") %>%
   select(response) 
 
@@ -211,15 +184,15 @@ median(test_stm_dot$response)/abs(median(reference_few_dot$response) - median(re
 ```
 In general for faces
 ```{r}
-test_stm_face <- df_exp_filter %>%
+test_stm_face <- df_exp %>%
   filter(stimulus == "videos/fs1yo.mp4" | stimulus == "videos/fs2yo.mp4") %>%
   select(response) 
 
-reference_few_face <- df_exp_filter %>%
+reference_few_face <- df_exp %>%
   filter(stimulus == "videos/fs1y.mp4" | stimulus == "videos/fs2y.mp4") %>%
   select(response) 
 
-reference_many_face <- df_exp_filter %>%
+reference_many_face <- df_exp %>%
   filter(stimulus == "videos/fs1o.mp4" | stimulus == "videos/fs2o.mp4") %>%
   select(response) 
 
@@ -238,12 +211,12 @@ Here I can also observe two ways, and a decision to make. When I calculated de a
 
 Posibility 1
 ```{r}
-dot_attraction_index_individual <- rep(NaN,nrow(df_demographic_filter))
+dot_attraction_index_individual <- rep(NaN,length(unique(df_exp$participants)))
 
-for (i in 1:nrow(df_demographic_filter)) {
+for (i in 1:length(unique(df_exp$participants))) {
   
-  d_per_participat <- df_exp_filter %>%
-    filter(participants== unique(df_exp_filter$participants)[i])
+  d_per_participat <- df_exp %>%
+    filter(participants== unique(df_exp$participants)[i])
   
   test_stm_dot_p <- d_per_participat %>%
   filter(stimulus == "dot_40_60") %>%
@@ -268,13 +241,13 @@ I can observe that some results are inf. After look what happened, it seems that
 
 Posibility 2 (less probably that it divides by 0)
 ```{r}
-dot_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
-dot_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+dot_attraction_index_individual_mean <- rep(NaN,length(unique(df_exp$participants)))
+dot_attraction_index_individual_median <- rep(NaN,length(unique(df_exp$participants)))
 
-for (i in 1:nrow(df_demographic_filter)) {
+for (i in 1:length(unique(df_exp$participants))) {
   
-  d_per_participat <- df_exp_filter %>%
-    filter(participants== unique(df_exp_filter$participants)[i])
+  d_per_participat <- df_exp %>%
+    filter(participants== unique(df_exp$participants)[i])
   
   test_stm_dot_p <- d_per_participat %>%
   filter(stimulus == "dot_40_60") %>%
@@ -293,19 +266,19 @@ The second posibility worked better. I will continue with this one.
 
 I will add the individual attraction index as a column
 ```{r}
-df_demographic_filter$dot_attraction_index_individual_mean_d1 <- dot_attraction_index_individual_mean
-df_demographic_filter$dot_attraction_index_individual_median_d1 <- dot_attraction_index_individual_median
+df_exp_grouped$dot_attraction_index_individual_mean_d1 <- dot_attraction_index_individual_mean
+df_exp_grouped$dot_attraction_index_individual_median_d1 <- dot_attraction_index_individual_median
 ```
 
 Individual attraction index for faces based on definition 1
 ```{r}
-face_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
-face_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+face_attraction_index_individual_mean <- rep(NaN,length(unique(df_exp$participants)))
+face_attraction_index_individual_median <- rep(NaN,length(unique(df_exp$participants)))
 
-for (i in 1:nrow(df_demographic_filter)) {
+for (i in 1:length(unique(df_exp$participants))) {
   
-  d_per_participat <- df_exp_filter %>%
-    filter(participants== unique(df_exp_filter$participants)[i])
+  d_per_participat <- df_exp %>%
+    filter(participants== unique(df_exp$participants)[i])
   
   test_stm_face_p <- d_per_participat %>%
   filter(stimulus == "videos/fs1yo.mp4" |stimulus == "videos/fs2yo.mp4") %>%
@@ -322,8 +295,8 @@ print(face_attraction_index_individual_median)
 ```
 I adding the individual attraction index as a column
 ```{r}
-df_demographic_filter$face_attraction_index_individual_mean_d1 <- face_attraction_index_individual_mean
-df_demographic_filter$face_attraction_index_individual_median_d1 <- face_attraction_index_individual_median
+df_exp_grouped$face_attraction_index_individual_mean_d1 <- face_attraction_index_individual_mean
+df_exp_grouped$face_attraction_index_individual_median_d1 <- face_attraction_index_individual_median
 ```
 
 
@@ -357,13 +330,13 @@ abs(median(test_stm_face$response) - median(reference_many_face$response))/(medi
 
 Per participant with the posibility 2 only - for faces
 ```{r}
-face_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
-face_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+face_attraction_index_individual_mean <- rep(NaN,length(unique(df_exp$participants)))
+face_attraction_index_individual_median <- rep(NaN,length(unique(df_exp$participants)))
 
-for (i in 1:nrow(df_demographic_filter)) {
+for (i in 1:length(unique(df_exp$participants))) {
   
-  d_per_participat <- df_exp_filter %>%
-    filter(participants== unique(df_exp_filter$participants)[i])
+  d_per_participat <- df_exp %>%
+    filter(participants== unique(df_exp$participants)[i])
   
   test_stm_face_p <- d_per_participat %>%
   filter(stimulus == "videos/fs2yo.mp4" | stimulus == "videos/fs1yo.mp4") %>%
@@ -382,19 +355,19 @@ print(face_attraction_index_individual_median)
 
 I will add the individual attraction index based on the definition 2 as a column
 ```{r}
-df_demographic_filter$face_attraction_index_individual_mean_d2 <- face_attraction_index_individual_mean
-df_demographic_filter$face_attraction_index_individual_median_d2 <- face_attraction_index_individual_median
+df_exp_grouped$face_attraction_index_individual_mean_d2 <- face_attraction_index_individual_mean
+df_exp_grouped$face_attraction_index_individual_median_d2 <- face_attraction_index_individual_median
 ```
 
 Per participant with the posibility 2 only - for dots
 ```{r}
-dot_attraction_index_individual_mean <- rep(NaN,nrow(df_demographic_filter))
-dot_attraction_index_individual_median <- rep(NaN,nrow(df_demographic_filter))
+dot_attraction_index_individual_mean <- rep(NaN,length(unique(df_exp$participants)))
+dot_attraction_index_individual_median <- rep(NaN,length(unique(df_exp$participants)))
 
-for (i in 1:nrow(df_demographic_filter)) {
+for (i in 1:length(unique(df_exp$participants))) {
   
-  d_per_participat <- df_exp_filter %>%
-    filter(participants== unique(df_exp_filter$participants)[i])
+  d_per_participat <- df_exp %>%
+    filter(participants== unique(df_exp$participants)[i])
   
   test_stm_dot_p <- d_per_participat %>%
   filter(stimulus == "dot_40_60") %>%
@@ -413,8 +386,8 @@ print(dot_attraction_index_individual_median)
 
 I will add the individual attraction index based on the definition 2 as a column
 ```{r}
-df_demographic_filter$dot_attraction_index_individual_mean_d2 <- dot_attraction_index_individual_mean
-df_demographic_filter$dot_attraction_index_individual_median_d2 <- dot_attraction_index_individual_median
+df_exp_grouped$dot_attraction_index_individual_mean_d2 <- dot_attraction_index_individual_mean
+df_exp_grouped$dot_attraction_index_individual_median_d2 <- dot_attraction_index_individual_median
 ```
 
 
@@ -422,29 +395,29 @@ df_demographic_filter$dot_attraction_index_individual_median_d2 <- dot_attractio
 
 
 ```{r}
-d <- data.frame(attractionIndex = c(df_demographic_filter$dot_attraction_index_individual_mean_d1,
-                                    df_demographic_filter$dot_attraction_index_individual_median_d1,
-                                    df_demographic_filter$dot_attraction_index_individual_mean_d2,
-                                    df_demographic_filter$dot_attraction_index_individual_median_d2,
-                                    df_demographic_filter$face_attraction_index_individual_mean_d1,
-                                    df_demographic_filter$face_attraction_index_individual_median_d1,
-                                    df_demographic_filter$face_attraction_index_individual_mean_d2,
-                                    df_demographic_filter$face_attraction_index_individual_median_d2
+d <- data.frame(attractionIndex = c(df_exp_grouped$dot_attraction_index_individual_mean_d1,
+                                    df_exp_grouped$dot_attraction_index_individual_median_d1,
+                                    df_exp_grouped$dot_attraction_index_individual_mean_d2,
+                                    df_exp_grouped$dot_attraction_index_individual_median_d2,
+                                    df_exp_grouped$face_attraction_index_individual_mean_d1,
+                                    df_exp_grouped$face_attraction_index_individual_median_d1,
+                                    df_exp_grouped$face_attraction_index_individual_mean_d2,
+                                    df_exp_grouped$face_attraction_index_individual_median_d2
                                     ),
-                type_stim = c(rep("Dot", nrow(df_demographic_filter)*4),
-                              rep("Face", nrow(df_demographic_filter)*4)),
-                DefinitionattractionIndex = c(rep("option_1",nrow(df_demographic_filter)*2),
-                                              rep("option_2",nrow(df_demographic_filter)*2),
-                                              rep("option_1",nrow(df_demographic_filter)*2),
-                                              rep("option_2",nrow(df_demographic_filter)*2)),
-                CentralMeasure = c(rep("mean",nrow(df_demographic_filter)),
-                                   rep("median",nrow(df_demographic_filter)),
-                                   rep("mean",nrow(df_demographic_filter)),
-                                   rep("median",nrow(df_demographic_filter)),
-                                   rep("mean",nrow(df_demographic_filter)),
-                                   rep("median",nrow(df_demographic_filter)),
-                                   rep("mean",nrow(df_demographic_filter)),
-                                   rep("median",nrow(df_demographic_filter))))
+                type_stim = c(rep("Dot", length(unique(df_exp_grouped$participants))*4),
+                              rep("Face", length(unique(df_exp_grouped$participants))*4)),
+                DefinitionattractionIndex = c(rep("option_1",length(unique(df_exp_grouped$participants))*2),
+                                              rep("option_2",length(unique(df_exp_grouped$participants))*2),
+                                              rep("option_1",length(unique(df_exp_grouped$participants))*2),
+                                              rep("option_2",length(unique(df_exp_grouped$participants))*2)),
+                CentralMeasure = c(rep("mean",length(unique(df_exp_grouped$participants))),
+                                   rep("median",length(unique(df_exp_grouped$participants))),
+                                   rep("mean",length(unique(df_exp_grouped$participants))),
+                                   rep("median",length(unique(df_exp_grouped$participants))),
+                                   rep("mean",length(unique(df_exp_grouped$participants))),
+                                   rep("median",length(unique(df_exp_grouped$participants))),
+                                   rep("mean",length(unique(df_exp_grouped$participants))),
+                                   rep("median",length(unique(df_exp_grouped$participants)))))
                                            
 
 ggplot(data = d, aes(y = attractionIndex, x = CentralMeasure, fill = DefinitionattractionIndex)) + 
@@ -459,25 +432,13 @@ ggplot(data = d, aes(y = attractionIndex, x = CentralMeasure, fill = Definitiona
 ```
 The distribution of individual index attraction seems not normal.
 
-Is there correlation between AI of face aging and of numerosity? We will use the spearman correlation.
+
+
 ```{r}
-print("Relation between: Individual attraction Index (mean) based on Option 1 of attraction Index (face vs dots): ")
-cor.test(df_demographic_filter$dot_attraction_index_individual_mean_d1,
-         df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("Relation between: Individual attraction Index (median) based on Option 1 of attraction Index (face vs dots): ")
-cor.test(df_demographic_filter$dot_attraction_index_individual_median_d1,
-         df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("Relation between: Individual attraction Index (mean) based on Option 2 of attraction Index (face vs dots): ")
-cor.test(df_demographic_filter$dot_attraction_index_individual_mean_d2,
-         df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("Relation between: Individual attraction Index (median) based on Option 2 of attraction Index (face vs dots): ")
-cor.test(df_demographic_filter$dot_attraction_index_individual_median_d2,
-         df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
+# save the df so far
+filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_grouped_long.Rda")
+save(df_exp_grouped,file = filepath)
 ```
-
 
 
 ## Relationship between AQ and attraction index
@@ -491,9 +452,8 @@ First of all, I will modify the df
 ```{r}
 library(stringr)
 
-
 # I will work only with faces first
-d_faces <- df_exp_filter %>%
+d_faces <- df_exp %>%
   filter(stimulus == "videos/fs1yo.mp4"|
            stimulus == "videos/fs1o.mp4" |
            stimulus == "videos/fs1y.mp4" |
@@ -522,16 +482,12 @@ head(d_faces)
 ```
 
 ```{r}
-
-d_faces$AQ <- rep(df_demographic_filter$AQ, each = 3)
-
 d_faces %>% 
   ggplot(aes(x = AQ, y = response, color = face_age)) + 
   geom_point() + 
   geom_smooth(method = "lm", se = F) + 
   facet_wrap(~ face_type) + 
   theme_classic()
-
 ```
 
 
@@ -547,9 +503,6 @@ Face 1 does not maximize the effect we are looking for. There does not seem to b
 
 Instead of AQ, we examine the relationship with AQ Attention to Details subscale
 ```{r}
-
-d_faces$AQ_attencion_detail <- rep(df_demographic_filter$AQ_attencion_detail, each = 3)
-
 d_faces %>% 
   ggplot(aes(x = AQ_attencion_detail, y = response, color = face_age)) + 
   geom_point() + 
@@ -559,39 +512,23 @@ d_faces %>%
 
 ```
 
-We will use the spearman correlation to test AQ vs attraction index
-```{r}
-
-print("AQ - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
-```
-
 
 Dots and AQ
 
 ```{r}
 ## crear un data frame para mostrar cuatro lineas, segun media y mediana y segun definicion 1 y 2.
-d_dots <- data.frame(AQ = rep(df_demographic_filter$AQ, times= nrow(df_demographic_filter)*4),
-                     AQ_attencion_detail = rep(df_demographic_filter$AQ_attencion_detail, times= nrow(df_demographic_filter)*4),
-                     AttractionIndex = c(df_demographic_filter$dot_attraction_index_individual_mean_d1,
-                                         df_demographic_filter$dot_attraction_index_individual_mean_d2,
-                                         df_demographic_filter$dot_attraction_index_individual_median_d1,
-                                         df_demographic_filter$dot_attraction_index_individual_median_d2),
-                     centralMeasure = c(rep("mean",nrow(df_demographic_filter)*2),
-                                        rep("median",nrow(df_demographic_filter)*2)),
-                     optionAttractionIndex = c(rep("option_1",nrow(df_demographic_filter)),
-                                        rep("option_2",nrow(df_demographic_filter)),
-                                        rep("option_1",nrow(df_demographic_filter)),
-                                        rep("option_2",nrow(df_demographic_filter)))
+d_dots <- data.frame(AQ = rep(df_exp_grouped$AQ, times= length(unique(df_exp$participants))*4),
+                     AQ_attencion_detail = rep(df_exp_grouped$AQ_attencion_detail, times= length(unique(df_exp$participants))*4),
+                     AttractionIndex = c(df_exp_grouped$dot_attraction_index_individual_mean_d1,
+                                         df_exp_grouped$dot_attraction_index_individual_mean_d2,
+                                         df_exp_grouped$dot_attraction_index_individual_median_d1,
+                                         df_exp_grouped$dot_attraction_index_individual_median_d2),
+                     centralMeasure = c(rep("mean",length(unique(df_exp$participants))*2),
+                                        rep("median",length(unique(df_exp$participants))*2)),
+                     optionAttractionIndex = c(rep("option_1",length(unique(df_exp$participants))),
+                                        rep("option_2",length(unique(df_exp$participants))),
+                                        rep("option_1",length(unique(df_exp$participants))),
+                                        rep("option_2",length(unique(df_exp$participants))))
                      )
 
 d_dots %>% 
@@ -614,189 +551,6 @@ d_dots %>%
   geom_smooth(method = "lm", se = F) + 
   facet_wrap(~ centralMeasure)+
   theme_classic()
-```
-
-
-
-We will use the spearman correlation
-```{r}
-
-print("AQ - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
-```
-
-
-Non significant correlation. Now I will try with the subscales.
-
-AQ Social Subscale for faces
-```{r}
-
-print("AQ Social subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ Social subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ Social subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ  Social subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ Attentional Swithces Subscale for faces
-```{r}
-
-print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ Attention to Detail Subscale for faces
-```{r}
-
-print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
-```
-AQ communication Subscale for faces
-```{r}
-
-print("AQ communication subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ communication subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ communication subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ communication subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ imagination Subscale for faces
-```{r}
-
-print("AQ imagination subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ imagination subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ imagination subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ imagination subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$face_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ Social Subscale for dots
-```{r}
-
-print("AQ Social subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ Social subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ Social subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ  Social subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_social, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ Attentional Swithces Subscale for dots
-```{r}
-
-print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ Attentional Switches subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ Attentional Switches subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attentional_switches, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ Attention to Detail Subscale for dots
-```{r}
-
-print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ Attention to Detail subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ Attention to Detail subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_attencion_detail, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
-```
-AQ communication Subscale for dots
-```{r}
-
-print("AQ communication subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ communication subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ communication subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ communication subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_communication, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
-```
-
-AQ imagination Subscale for dots
-```{r}
-
-print("AQ imagination subscale - Individual attraction Index (mean) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_mean_d1, method="spearman")
-
-print("AQ imagination subscale - Individual attraction Index (median) based on Option 1 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_median_d1, method="spearman")
-
-print("AQ imagination subscale - Individual attraction Index (mean) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_mean_d2, method="spearman")
-
-print("AQ imagination subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
-cor.test(df_demographic_filter$AQ_imagination, df_demographic_filter$dot_attraction_index_individual_median_d2, method="spearman")
-```
-
-```{r}
-
 ```
 
 
@@ -870,13 +624,13 @@ summary(m_3)
 
 
 ```{r}
-d_dots_regression <- df_exp_filter %>%
+d_dots_regression <- df_exp %>%
   filter(stimulus == "dot_40_60" |
            stimulus == "dot_60" |
            stimulus == "dot_40") 
 
-d_dots_regression$AQ <- rep(df_demographic_filter$AQ, each = 3)
-d_dots_regression$AQ_attention_detail <- rep(df_demographic_filter$AQ_attencion_detail, each = 3)
+d_dots_regression$AQ <- rep(df_exp_grouped$AQ, each = 3)
+d_dots_regression$AQ_attention_detail <- rep(df_exp_grouped$AQ_attencion_detail, each = 3)
 
 
 # Reorder the categorical variable
