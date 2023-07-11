@@ -195,3 +195,17 @@ cor.test(df_exp_grouped$AQ_imagination, df_exp_grouped$dot_attraction_index_indi
 print("AQ imagination subscale - Individual attraction Index (median) based on Option 2 of attraction Index: ")
 cor.test(df_exp_grouped$AQ_imagination, df_exp_grouped$dot_attraction_index_individual_median_d2, method="spearman")
 
+
+
+
+### correlation asked by yuval
+
+## AQ Attention to Detail Subscale for faces WITHOUT OUTLIER
+library(dplyr)
+
+d <- df_exp_grouped %>%
+  filter(face_attraction_index_individual_mean_d1 <3)
+
+cor.test(d$AQ_attencion_detail, 
+         d$face_attraction_index_individual_mean_d1, 
+         method="spearman")
