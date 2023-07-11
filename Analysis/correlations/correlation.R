@@ -7,8 +7,6 @@ basename(getwd())
 filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_grouped_long.Rda")
 load(file= filepath)
 
-df_exp_grouped <- df_exp_filter_grouped_long
-
 
 # Is there correlation between AI of face aging and of numerosity? We will use the spearman correlation.
 
