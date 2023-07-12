@@ -11,7 +11,11 @@ basename(getwd())
 filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_long.Rda")
 load(file= filepath)
 
-d_face <- df_exp_filter_long 
+filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_grouped_long.Rda")
+load(file= filepath)
+
+
+d <- df_exp_grouped
 
 ## for faces
 
