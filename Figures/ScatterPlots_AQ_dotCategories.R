@@ -16,12 +16,16 @@ library(ggplot2)
 d <- df_exp_filter_long %>%
   filter(stimulus == "dot_40_60" |
            stimulus == "dot_60" |
-           stimulus == "dot_40")
+           stimulus == "dot_40") %>%
+  mutate(stimulus = factor(stimulus, levels = c("dot_40_60", "dot_60", "dot_40")))
+
+#cols <-  c("#619CFF", "#F8766D" ,"#00BA38")#c("lightblue", "red", "green")
 
 d %>% 
   ggplot(aes(x = AQ, y = response, color = stimulus)) + 
   geom_point() + 
   geom_smooth(method = "lm", se = F) + 
+  #scale_color_manual(values = cols) +
   theme_classic() +
   theme(axis.title.x = element_text(size = 15),
         axis.title.y = element_text(size = 15),
@@ -38,6 +42,7 @@ d %>%
   geom_point() + 
   geom_smooth(method = "lm", se = F) + 
   theme_classic() +
+  #scale_color_manual(values = cols) +
   theme(axis.title.x = element_text(size = 15),
         axis.title.y = element_text(size = 15),
         axis.text = element_text(size = 15),

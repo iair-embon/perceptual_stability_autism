@@ -11,6 +11,7 @@ load(file= filepath)
 ## for faces
 
 library(stringr)
+library(dplyr)
 
 # I will work only with faces first
 d_faces <- df_exp_filter_long %>%
