@@ -14,7 +14,7 @@ root <- rprojroot::is_rstudio_project
 basename(getwd())
 
 # load dataframe 
-filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_long.Rda")
+filepath <- root$find_file("pilot_2/df_exp_filter_long.Rda")
 load(file= filepath)
 
 df_exp <- df_exp_filter_long
