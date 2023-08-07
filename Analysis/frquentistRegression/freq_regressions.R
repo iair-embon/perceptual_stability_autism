@@ -4,7 +4,7 @@ root <- rprojroot::is_rstudio_project
 basename(getwd())
 
 # load dataframe 
-filepath <- root$find_file("pilot/long_df_filtered/df_exp_filter_long.Rda")
+filepath <- root$find_file("pilot_2/df_exp_filter_long.Rda")
 load(file= filepath)
 
 
@@ -61,9 +61,12 @@ summary(m_4_bis)
 ## for dots
 
 d_dots_regression <- df_exp_filter_long %>%
-  filter(stimulus == "dot_40_60" |
-           stimulus == "dot_60" |
-           stimulus == "dot_40") 
+  filter(stimulus == "dot1_13_26" |
+           stimulus == "dot2_26_52" |
+           stimulus == "dot2_26"|
+           stimulus == "dot1_13" |
+           stimulus == "dot2_52" |
+           stimulus == "dot1_26") 
 
 # Reorder the categorical variable
 d_dots_regression$stimulus <- as.factor(d_dots_regression$stimulus)
