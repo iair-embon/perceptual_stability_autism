@@ -34,7 +34,7 @@ d_faces <- df_exp_filter_long %>%
   )) %>%
   select(!(stimulus))
 
-m_1 <- lm(response ~ face_type + face_age, data= d_faces)
+m_1 <- lm(response ~ face_type * face_age, data= d_faces)
 summary(m_1)
 # Ok. When predicting responses, the face_type (1 or 2) is not a significant predictor. Good new
 
@@ -54,9 +54,20 @@ summary(m_3_bis)
 m_4 <- lm(response ~  face_type* face_age* scale(AQ), data= d_faces)
 summary(m_4)
 
-m_4_bis <- lm(response ~  face_type* face_age* scale(AQ_attencion_detail), data= d_faces)
-summary(m_4_bis)
+m_4_bis_1 <- lm(response ~  face_type* face_age* scale(AQ_attencion_detail), data= d_faces)
+summary(m_4_bis_1)
 
+m_4_bis_2 <- lm(response ~  face_type* face_age* scale(AQ_social), data= d_faces)
+summary(m_4_bis_2)
+
+m_4_bis_3 <- lm(response ~  face_type* face_age* scale(AQ_attentional_switches), data= d_faces)
+summary(m_4_bis_3)
+
+m_4_bis_4 <- lm(response ~  face_type* face_age* scale(AQ_communication), data= d_faces)
+summary(m_4_bis_4)
+
+m_4_bis_5 <- lm(response ~  face_type* face_age* scale(AQ_imagination), data= d_faces)
+summary(m_4_bis_5)
 
 ## for dots
 
@@ -66,18 +77,42 @@ d_dots_regression <- df_exp_filter_long %>%
            stimulus == "dot2_26"|
            stimulus == "dot1_13" |
            stimulus == "dot2_52" |
-           stimulus == "dot1_26") 
+           stimulus == "dot1_26") %>%
+  mutate(dot_type = case_when(
+    str_detect(stimulus, "(dot1_13_26|dot1_13|dot1_26)") ~ 0,
+    str_detect(stimulus, "(dot2_26_52|dot2_26|dot2_52)") ~ 1,
+    TRUE ~ NA 
+  ),
+  dot_amount = case_when(
+    str_detect(stimulus, "(dot1_13_26|dot2_26_52)") ~ "morph",
+    str_detect(stimulus, "(dot1_13|dot2_26)") ~ "few",
+    str_detect(stimulus, "(dot1_26|dot2_52)") ~ "many",
+    TRUE ~ NA 
+  )) %>%
+  select(!(stimulus))
 
 # Reorder the categorical variable
-d_dots_regression$stimulus <- as.factor(d_dots_regression$stimulus)
+d_dots_regression$dot_amount <- as.factor(d_dots_regression$dot_amount)
 d_dots_regression <- d_dots_regression %>%
-  mutate(stimulus = relevel(stimulus, ref = "dot_40_60"))
+  mutate(dot_amount = relevel(dot_amount, ref = "morph"))
 
-m_1_dots <- lm(response ~  stimulus, data= d_dots_regression)
+m_1_dots <- lm(response ~ dot_type + dot_amount, data= d_dots_regression)
 summary(m_1_dots)
 
-m_2_dots <- lm(response ~  stimulus*AQ, data= d_dots_regression)
+m_2_dots <- lm(response ~  dot_type* dot_amount* scale(AQ), data= d_dots_regression)
 summary(m_2_dots)
 
-m_3_dots <- lm(response ~  stimulus*AQ_attencion_detail, data= d_dots_regression)
-summary(m_3_dots)
+m_2_dots_bis_1 <- lm(response ~  dot_type* dot_amount* scale(AQ_attencion_detail), data= d_dots_regression)
+summary(m_2_dots_bis_1)
+
+m_2_dots_bis_2 <- lm(response ~  dot_type* dot_amount* scale(AQ_social), data= d_dots_regression)
+summary(m_2_dots_bis_2)
+
+m_2_dots_bis_3 <- lm(response ~  dot_type* dot_amount* scale(AQ_attentional_switches), data= d_dots_regression)
+summary(m_2_dots_bis_3)
+
+m_2_dots_bis_4 <- lm(response ~  dot_type* dot_amount* scale(AQ_communication), data= d_dots_regression)
+summary(m_2_dots_bis_4)
+
+m_2_dots_bis_5 <- lm(response ~  dot_type* dot_amount* scale(AQ_imagination), data= d_dots_regression)
+summary(m_2_dots_bis_5)
