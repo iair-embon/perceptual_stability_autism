@@ -216,49 +216,11 @@ df_NotExperimentData$AQ_communication <- puntaje_AQ_sujetos_communication
 df_NotExperimentData$AQ_imagination <- puntaje_AQ_sujetos_imagination
 
 
-## yuval s format
-library(tidyverse)
-
-df_total_response <- df_exp_filtered_mod %>%
-  pivot_wider(names_from = trial, names_prefix = "response_trial_", values_from = response) %>%
-  mutate_all(., ~replace(., is.na(.), 5555)) %>%
-  group_by(participants) %>%
-  summarise(response_trial_1 = min(response_trial_1),
-            response_trial_2 = min(response_trial_2),
-            response_trial_3 = min(response_trial_3),
-            response_trial_4 = min(response_trial_4),
-            response_trial_5 = min(response_trial_5),
-            response_trial_6 = min(response_trial_6))
-
-df_total_rt <- df_exp_filtered_mod %>%
-  pivot_wider(names_from = trial, names_prefix = "rt_trial_", values_from = rt) %>%
-  mutate_all(., ~replace(., is.na(.), -100)) %>%
-  group_by(participants) %>%
-  summarise(rt_trial_1 = max(rt_trial_1),
-            rt_trial_2 = max(rt_trial_2),
-            rt_trial_3 = max(rt_trial_3),
-            rt_trial_4 = max(rt_trial_4),
-            rt_trial_5 = max(rt_trial_5),
-            rt_trial_6 = max(rt_trial_6))
-
-df_total_stim <- df_exp_filtered_mod %>%
-  pivot_wider(names_from = trial, names_prefix = "stim_trial_", values_from = stimulus) %>%
-  mutate_all(., ~replace(., is.na(.), -100)) %>%
-  group_by(participants) %>%
-
-
-
-for (i in 1:length(unique(df_exp_filtered_mod$participants))) {
-  lala <- df_exp_filtered_mod %>%
-    filter(participants == i)
-  df_total <- cbind(df_total, lala)
-}
-
 ######## I observe if all the paritcipant.id are in prolific data and the other
 ######## way around 
-prolific_info<-read.csv("pilot/prolific_export_05062023_40_participants.csv") 
-prolific_info$Participant.id %in%  df_NotExperimentData$prolific
-df_NotExperimentData$prolific %in% prolific_info$Participant.id
+# prolific_info<-read.csv("pilot/prolific_export_05062023_40_participants.csv") 
+# prolific_info$Participant.id %in%  df_NotExperimentData$prolific
+# df_NotExperimentData$prolific %in% prolific_info$Participant.id
 
 ### save the data frames
 write.csv(df_exp_filtered_mod, "pilot_2/df_exp_filtered_mod.csv", row.names=FALSE)
