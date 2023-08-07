@@ -21,6 +21,7 @@ for (column_name in df_demographic_colnames) {
   df_exp[[column_name]] <-  rep(df_demographic[[column_name]], each= 6) 
 }
 
+
 ## save the dataframe
 df_exp_long <- df_exp
 
@@ -37,12 +38,12 @@ write.csv(df_exp_long, file = filepath, row.names = FALSE)
 df_demographic_filter <- df_demographic %>%
   filter(AffectionPsycho_1 == "No") 
 
-paste(nrow(df_demographic) - nrow(df_demographic_filter)," participant/s were removed by psychiatric condition")
-
 df_demographic_filter <- df_demographic_filter %>%
   filter(medication_1 == "No") 
 
-paste(nrow(df_demographic) - nrow(df_demographic_filter)," participant/s were removed by medication condition")
+## filter by data quality question
+df_demographic_filter <- df_demographic_filter %>%
+  filter(QualityTest == "You can count on my answers, I participated in the experiment conscientiously and tried to answer honestly.") 
 
 ## filter the participant also in df_exp
 

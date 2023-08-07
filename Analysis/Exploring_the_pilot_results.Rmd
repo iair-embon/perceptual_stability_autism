@@ -18,6 +18,7 @@ filepath <- root$find_file("pilot_2/df_exp_filter_long.Rda")
 load(file= filepath)
 
 df_exp <- df_exp_filter_long
+rm(df_exp_filter_long)
 ```
 
 ## Explore df
@@ -30,6 +31,8 @@ head(df_exp)
 
 ```{r}
 library(dplyr)
+library(ggplot2)
+
 # grouped df
 df_exp_grouped <- df_exp %>% 
   group_by(participants) %>%
@@ -57,7 +60,7 @@ paste("For female: ")
 summary(df_exp_grouped[df_exp_grouped$sex == "Female",]$AQ)
 ```
 
-Inonsistent with previous literature (female:15.4; male: 17.8; Baron-Cohen et al., 2001).
+Not very similar with previous literature (female:15.4; male: 17.8; Baron-Cohen et al., 2001).
 Not usual female scoring more than male on AQ.
 
 ## Exploratory analysis on face/dots stimuli
@@ -73,23 +76,29 @@ df_exp %>%
 ```
 It's kind of weird, because the mean shows that in the dot stimuli there is no apparent effect, but the median does show that there would be an apparent effect. Check the distribution, they may not be Gaussian.
 
+I discard those responses that are 3 deviations away from the mean of their respective group.
 ```{r}
-library(ggplot2)
+# Calculates the mean and standard deviation for each stimulus.
+stimulus_stats <- df_exp %>%
+  group_by(stimulus) %>%
+  summarize(
+    mean_response = mean(response),
+    sd_response = sd(response)
+  )
 
-df_exp %>%
-  filter(stimulus == "dot_40_60") %>%
-  ggplot(aes(response)) +
-  geom_histogram(binwidth = 5, fill = "grey", color = "black") +
-  ggtitle("dot_40_60 Response Histogram") +
-  xlab("Response") +
-  ylab("Count") 
+# Join the statistics back to the original dataframe.
+df_exp_with_stats <- df_exp %>%
+  left_join(stimulus_stats, by = "stimulus")
 
+# Filter out responses that are more than 3 standard deviations away from the mean.
+df_exp_filtered <- df_exp_with_stats %>%
+  filter(abs(response - mean_response) <= 2 * sd_response)
 ```
-Now it makes sense. The distribution is not Gaussian, there are some answers out of 100. Could these be considered outliers?
+
 
 I test the other distributions
 ```{r}
-p <- df_exp %>% 
+p <- df_exp_filtered %>% 
   ggplot(aes(response)) + 
   geom_histogram(binwidth = 5, fill = "blue", color = "black") +
   ggtitle("Response Histogram") + 
@@ -109,6 +118,16 @@ summarized <- df_exp %>%
 p + 
   geom_vline(data = summarized, aes(xintercept = mean), color = "black", linetype = "solid") +
   geom_vline(data = summarized, aes(xintercept = median), color = "black", linetype = "dashed") 
+
+```
+
+```{r}
+df_exp_filtered %>%
+  group_by(stimulus) %>%
+  summarise(mean = mean(response), 
+            median = median(response),
+            se = sd(response)/sqrt(length(response)),
+            sd = sd(response))
 
 ```
 
