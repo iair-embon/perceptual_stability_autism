@@ -1,3 +1,8 @@
+## libraries
+library(stringr)
+library(dplyr)
+library(ggplot2)
+
 root <- rprojroot::is_rstudio_project
 basename(getwd())
 
@@ -5,11 +10,26 @@ basename(getwd())
 filepath <- root$find_file("pilot_2/df_exp_filter_long.Rda")
 load(file= filepath)
 
+## I discard those responses that are 3 deviations away from the mean of their respective group.
+
+# Calculates the mean and standard deviation for each stimulus.
+stimulus_stats <- df_exp_filter_long %>%
+  group_by(stimulus) %>%
+  summarize(
+    mean_response = mean(response),
+    sd_response = sd(response)
+  )
+
+# Join the statistics back to the original dataframe.
+df_exp_with_stats <- df_exp_filter_long %>%
+  left_join(stimulus_stats, by = "stimulus")
+
+# Filter out responses that are more than 3 standard deviations away from the mean.
+df_exp_filter_long <- df_exp_with_stats %>%
+  filter(abs(response - mean_response) <= 2 * sd_response)
+
 
 ## for faces
-
-library(stringr)
-library(dplyr)
 
 # I will work only with faces first
 d_faces <- df_exp_filter_long %>%
@@ -59,8 +79,6 @@ d_guille <- d_guille %>%
 # so, we have: [morph_i - mean(old)] ~ AQ_i. i is the participant
 m_1 <- lm(bias ~ AQ, data= d_guille)
 summary(m_1)
-
-library(ggplot2)
 
 ggplot(d_guille, aes(AQ, bias)) +
   geom_point()+
