@@ -1,3 +1,7 @@
+### here we do the same regression analyisis as in freq_regressions_guille_idea_by_type
+### but only one stim_type per time. To see if it is significant.
+
+
 ## libraries
 library(stringr)
 library(dplyr)
@@ -75,116 +79,126 @@ d_guille <- d_guille %>%
                         response - mean_old_t1,
                         response - mean_old_t2))
 
+## I start with face_type 0
+d_guille_type_0 <- d_guille %>% filter(face_type == 0) 
+
 # now predict the bias based on AQ
 # so, we have: [morph_i - mean(old)] ~ AQ_i. i is the participant
-m_1 <- lm(bias ~ AQ, data= d_guille)
+m_1 <- lm(bias ~ AQ, data= d_guille_type_0)
 summary(m_1)
 
-ggplot(d_guille, aes(AQ, bias)) +
+ggplot(d_guille_type_0, aes(AQ, bias)) +
   geom_point()+
   labs(x = "AQ", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2 <- lm(bias ~ AQ * face_type , data= d_guille)
-summary(m_2)
-
-ggplot(d_guille, aes(AQ, bias, color = as.factor(face_type))) +
-  geom_point()+
-  labs(x = "AQ", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
 
 ## now repete all with the other subscales
 
 # AQ_attencion_detail
-m_1_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail, data= d_guille)
+m_1_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail, data= d_guille_type_0)
 summary(m_1_AQ_attencion_detail)
 
-ggplot(d_guille, aes(AQ_attencion_detail, bias)) +
+ggplot(d_guille_type_0, aes(AQ_attencion_detail, bias)) +
   geom_point()+
   labs(x = "AQ_attencion_detail", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail * face_type , data= d_guille)
-summary(m_2_AQ_attencion_detail)
-
-ggplot(d_guille, aes(AQ_attencion_detail, bias, color = as.factor(face_type))) +
-  geom_point()+
-  labs(x = "AQ_attencion_detail", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
 
 # AQ_social
-m_1_AQ_social <- lm(bias ~ AQ_social, data= d_guille)
+m_1_AQ_social <- lm(bias ~ AQ_social, data= d_guille_type_0)
 summary(m_1_AQ_social)
 
-ggplot(d_guille, aes(AQ_social, bias)) +
+ggplot(d_guille_type_0, aes(AQ_social, bias)) +
   geom_point()+
   labs(x = "AQ_social", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2_AQ_social <- lm(bias ~ AQ_social * face_type , data= d_guille)
-summary(m_2_AQ_social)
-
-ggplot(d_guille, aes(AQ_social, bias, color = as.factor(face_type))) +
-  geom_point()+
-  labs(x = "AQ_social", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
 
 # AQ_attentional_switches
-m_1_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches, data= d_guille)
+m_1_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches, data= d_guille_type_0)
 summary(m_1_AQ_attentional_switches)
 
-ggplot(d_guille, aes(AQ_attentional_switches, bias)) +
+ggplot(d_guille_type_0, aes(AQ_attentional_switches, bias)) +
   geom_point()+
   labs(x = "AQ_attentional_switches", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches * face_type , data= d_guille)
-summary(m_2_AQ_attentional_switches)
-
-ggplot(d_guille, aes(AQ_attentional_switches, bias, color = as.factor(face_type))) +
-  geom_point()+
-  labs(x = "AQ_attentional_switches", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
 
 # AQ_communication
-m_1_AQ_communication <- lm(bias ~ AQ_communication, data= d_guille)
+m_1_AQ_communication <- lm(bias ~ AQ_communication, data= d_guille_type_0)
 summary(m_1_AQ_communication)
 
-ggplot(d_guille, aes(AQ_communication, bias)) +
+ggplot(d_guille_type_0, aes(AQ_communication, bias)) +
   geom_point()+
   labs(x = "AQ_communication", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2_AQ_communication <- lm(bias ~ AQ_communication * face_type , data= d_guille)
-summary(m_2_AQ_communication)
-
-ggplot(d_guille, aes(AQ_communication, bias, color = as.factor(face_type))) +
-  geom_point()+
-  labs(x = "AQ_communication", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
 
 # AQ_imagination
-m_1_AQ_imagination <- lm(bias ~ AQ_imagination, data= d_guille)
+m_1_AQ_imagination <- lm(bias ~ AQ_imagination, data= d_guille_type_0)
 summary(m_1_AQ_imagination)
 
-ggplot(d_guille, aes(AQ_imagination, bias)) +
+ggplot(d_guille_type_0, aes(AQ_imagination, bias)) +
   geom_point()+
   labs(x = "AQ_imagination", y = "bias")+
   geom_smooth(method = "lm")
 
-m_2_AQ_imagination <- lm(bias ~ AQ_imagination * face_type , data= d_guille)
-summary(m_2_AQ_imagination)
+###### now I will do the same for face_type 1
 
-ggplot(d_guille, aes(AQ_imagination, bias, color = as.factor(face_type))) +
+d_guille_type_1 <- d_guille %>% filter(face_type == 1) 
+
+# now predict the bias based on AQ
+# so, we have: [morph_i - mean(old)] ~ AQ_i. i is the participant
+m_1 <- lm(bias ~ AQ, data= d_guille_type_1)
+summary(m_1)
+
+ggplot(d_guille_type_1, aes(AQ, bias)) +
+  geom_point()+
+  labs(x = "AQ", y = "bias")+
+  geom_smooth(method = "lm")
+
+## now repete all with the other subscales
+
+# AQ_attencion_detail
+m_1_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail, data= d_guille_type_1)
+summary(m_1_AQ_attencion_detail)
+
+ggplot(d_guille_type_1, aes(AQ_attencion_detail, bias)) +
+  geom_point()+
+  labs(x = "AQ_attencion_detail", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_social
+m_1_AQ_social <- lm(bias ~ AQ_social, data= d_guille_type_1)
+summary(m_1_AQ_social)
+
+ggplot(d_guille_type_1, aes(AQ_social, bias)) +
+  geom_point()+
+  labs(x = "AQ_social", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_attentional_switches
+m_1_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches, data= d_guille_type_1)
+summary(m_1_AQ_attentional_switches)
+
+ggplot(d_guille_type_1, aes(AQ_attentional_switches, bias)) +
+  geom_point()+
+  labs(x = "AQ_attentional_switches", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_communication
+m_1_AQ_communication <- lm(bias ~ AQ_communication, data= d_guille_type_1)
+summary(m_1_AQ_communication)
+
+ggplot(d_guille_type_1, aes(AQ_communication, bias)) +
+  geom_point()+
+  labs(x = "AQ_communication", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_imagination
+m_1_AQ_imagination <- lm(bias ~ AQ_imagination, data= d_guille_type_1)
+summary(m_1_AQ_imagination)
+
+ggplot(d_guille_type_1, aes(AQ_imagination, bias)) +
   geom_point()+
   labs(x = "AQ_imagination", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
+  geom_smooth(method = "lm")
 
 
 ###### now I will do the same for dots
@@ -231,126 +245,122 @@ dots_guille <- dots_guille %>%
                         response - mean_many_t1,
                         response - mean_many_t2))
 
+# I start with dot_type = 0
+dots_guille_type_0 <- dots_guille %>% filter(dot_type == 0)
+
 # now predict the bias based on AQ
 # so, we have: [morph_i - mean(old)] ~ AQ_i. i is the participant
-m_1 <- lm(bias ~ AQ, data= dots_guille)
+m_1 <- lm(bias ~ AQ, data= dots_guille_type_0)
 summary(m_1)
 
-ggplot(dots_guille, aes(AQ, bias)) +
+ggplot(dots_guille_type_0, aes(AQ, bias)) +
   geom_point()+
   labs(x = "AQ", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2 <- lm(bias ~ AQ * dot_type , data= dots_guille)
-summary(m_2)
-
-ggplot(dots_guille, aes(AQ, bias, color = as.factor(dot_type))) +
-  geom_point()+
-  labs(x = "AQ", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "dot type")
 
 ## now repete all with the other subscales
 
 # AQ_attencion_detail
-m_1_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail, data= dots_guille)
+m_1_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail, data= dots_guille_type_0)
 summary(m_1_AQ_attencion_detail)
 
-ggplot(dots_guille, aes(AQ_attencion_detail, bias)) +
+ggplot(dots_guille_type_0, aes(AQ_attencion_detail, bias)) +
   geom_point()+
   labs(x = "AQ_attencion_detail", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail * dot_type , data= dots_guille)
-summary(m_2_AQ_attencion_detail)
-
-ggplot(dots_guille, aes(AQ_attencion_detail, bias, color = as.factor(dot_type))) +
-  geom_point()+
-  labs(x = "AQ_attencion_detail", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "dot type")
 
 # AQ_social
-m_1_AQ_social <- lm(bias ~ AQ_social, data= dots_guille)
+m_1_AQ_social <- lm(bias ~ AQ_social, data= dots_guille_type_0)
 summary(m_1_AQ_social)
 
-ggplot(dots_guille, aes(AQ_social, bias)) +
+ggplot(dots_guille_type_0, aes(AQ_social, bias)) +
   geom_point()+
   labs(x = "AQ_social", y = "bias")+
   geom_smooth(method = "lm")
 
-m_2_AQ_social <- lm(bias ~ AQ_social * dot_type , data= dots_guille)
-summary(m_2_AQ_social)
-
-ggplot(dots_guille, aes(AQ_social, bias, color = as.factor(dot_type))) +
-  geom_point()+
-  labs(x = "AQ_social", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "face type")
-
 # AQ_attentional_switches
-m_1_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches, data= dots_guille)
+m_1_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches, data= dots_guille_type_0)
 summary(m_1_AQ_attentional_switches)
 
-ggplot(dots_guille, aes(AQ_attentional_switches, bias)) +
+ggplot(dots_guille_type_0, aes(AQ_attentional_switches, bias)) +
   geom_point()+
   labs(x = "AQ_attentional_switches", y = "bias")+
   geom_smooth(method = "lm")
 
-m_2_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches * dot_type , data= dots_guille)
-summary(m_2_AQ_attentional_switches)
-
-ggplot(dots_guille, aes(AQ_attentional_switches, bias, color = as.factor(dot_type))) +
-  geom_point()+
-  labs(x = "AQ attentional switches", y = "Bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "Dot Type")+
-  theme_minimal() +             # Cambiar el tema a uno minimalista
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 14),
-    axis.line = element_line(colour = "black"),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.background = element_blank(),
-    panel.border = element_blank()
-  )
-
 # AQ_communication
-m_1_AQ_communication <- lm(bias ~ AQ_communication, data= dots_guille)
+m_1_AQ_communication <- lm(bias ~ AQ_communication, data= dots_guille_type_0)
 summary(m_1_AQ_communication)
 
-ggplot(dots_guille, aes(AQ_communication, bias)) +
+ggplot(dots_guille_type_0, aes(AQ_communication, bias)) +
   geom_point()+
   labs(x = "AQ_communication", y = "bias")+
   geom_smooth(method = "lm")
-
-m_2_AQ_communication <- lm(bias ~ AQ_communication * dot_type , data= dots_guille)
-summary(m_2_AQ_communication)
-
-ggplot(dots_guille, aes(AQ_communication, bias, color = as.factor(dot_type))) +
-  geom_point()+
-  labs(x = "AQ_communication", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "dot type")
 
 # AQ_imagination
-m_1_AQ_imagination <- lm(bias ~ AQ_imagination, data= dots_guille)
+m_1_AQ_imagination <- lm(bias ~ AQ_imagination, data= dots_guille_type_0)
 summary(m_1_AQ_imagination)
 
-ggplot(dots_guille, aes(AQ_imagination, bias)) +
+ggplot(dots_guille_type_0, aes(AQ_imagination, bias)) +
   geom_point()+
   labs(x = "AQ_imagination", y = "bias")+
   geom_smooth(method = "lm")
 
-m_2_AQ_imagination <- lm(bias ~ AQ_imagination * dot_type , data= dots_guille)
-summary(m_2_AQ_imagination)
+# Now it is the turn of dot_type = 1
+dots_guille_type_1 <- dots_guille %>% filter(dot_type == 1)
 
-ggplot(dots_guille, aes(AQ_imagination, bias, color = as.factor(dot_type))) +
+# now predict the bias based on AQ
+# so, we have: [morph_i - mean(old)] ~ AQ_i. i is the participant
+m_1 <- lm(bias ~ AQ, data= dots_guille_type_1)
+summary(m_1)
+
+ggplot(dots_guille_type_1, aes(AQ, bias)) +
+  geom_point()+
+  labs(x = "AQ", y = "bias")+
+  geom_smooth(method = "lm")
+
+## now repete all with the other subscales
+
+# AQ_attencion_detail
+m_1_AQ_attencion_detail <- lm(bias ~ AQ_attencion_detail, data= dots_guille_type_1)
+summary(m_1_AQ_attencion_detail)
+
+ggplot(dots_guille_type_1, aes(AQ_attencion_detail, bias)) +
+  geom_point()+
+  labs(x = "AQ_attencion_detail", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_social
+m_1_AQ_social <- lm(bias ~ AQ_social, data= dots_guille_type_1)
+summary(m_1_AQ_social)
+
+ggplot(dots_guille_type_1, aes(AQ_social, bias)) +
+  geom_point()+
+  labs(x = "AQ_social", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_attentional_switches
+m_1_AQ_attentional_switches <- lm(bias ~ AQ_attentional_switches, data= dots_guille_type_1)
+summary(m_1_AQ_attentional_switches)
+
+ggplot(dots_guille_type_1, aes(AQ_attentional_switches, bias)) +
+  geom_point()+
+  labs(x = "AQ_attentional_switches", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_communication
+m_1_AQ_communication <- lm(bias ~ AQ_communication, data= dots_guille_type_1)
+summary(m_1_AQ_communication)
+
+ggplot(dots_guille_type_1, aes(AQ_communication, bias)) +
+  geom_point()+
+  labs(x = "AQ_communication", y = "bias")+
+  geom_smooth(method = "lm")
+
+# AQ_imagination
+m_1_AQ_imagination <- lm(bias ~ AQ_imagination, data= dots_guille_type_1)
+summary(m_1_AQ_imagination)
+
+ggplot(dots_guille_type_1, aes(AQ_imagination, bias)) +
   geom_point()+
   labs(x = "AQ_imagination", y = "bias")+
-  geom_smooth(method = "lm") + 
-  scale_color_discrete(name = "dot type")
-
+  geom_smooth(method = "lm")
