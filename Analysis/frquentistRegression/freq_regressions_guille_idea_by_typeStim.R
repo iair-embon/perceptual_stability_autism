@@ -266,8 +266,20 @@ summary(m_1_AQ_attencion_detail)
 
 ggplot(dots_guille_type_0, aes(AQ_attencion_detail, bias)) +
   geom_point()+
-  labs(x = "AQ_attencion_detail", y = "bias")+
-  geom_smooth(method = "lm")
+  labs(x = "AQ attencion detail", y = "Bias")+
+  geom_smooth(method = "lm") +
+  theme_minimal() +             # Cambiar el tema a uno minimalista
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 15),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  )
 
 # AQ_social
 m_1_AQ_social <- lm(bias ~ AQ_social, data= dots_guille_type_0)
@@ -345,7 +357,18 @@ summary(m_1_AQ_attentional_switches)
 ggplot(dots_guille_type_1, aes(AQ_attentional_switches, bias)) +
   geom_point()+
   labs(x = "AQ_attentional_switches", y = "bias")+
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm")+
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 15),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank()
+  )
 
 # AQ_communication
 m_1_AQ_communication <- lm(bias ~ AQ_communication, data= dots_guille_type_1)
