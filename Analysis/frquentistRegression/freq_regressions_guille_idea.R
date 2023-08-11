@@ -318,6 +318,28 @@ ggplot(dots_guille, aes(AQ_attentional_switches, bias, color = as.factor(dot_typ
     panel.border = element_blank()
   )
 
+require(gtsummary)
+require(dplyr)
+
+table1 <- m_2_AQ_attentional_switches %>%
+  tbl_regression(
+    intercept = T,
+    pvalue_fun = ~style_pvalue(.x, digits = 3),
+    estimate_fun =  ~style_number (.x, digits = 3),
+    label = list(
+      "(Intercept)" ~ "Intercept",
+      "AQ_attentional_switches" ~ "AQ attentional switches",
+      "dot_type" ~ "Dot Type",
+      "AQ_attentional_switches:dot_type" ~ "AQ attentional switches * dot type"
+      )
+  ) %>%
+  modify_header(label ~ "") %>%
+  modify_column_unhide(column = std.error) %>%
+  add_global_p() %>%
+  #add_q() %>%
+  bold_p(t = 0.05) %>%
+  add_glance_table(include = c(r.squared, adj.r.squared))
+
 # AQ_communication
 m_1_AQ_communication <- lm(bias ~ AQ_communication, data= dots_guille)
 summary(m_1_AQ_communication)
