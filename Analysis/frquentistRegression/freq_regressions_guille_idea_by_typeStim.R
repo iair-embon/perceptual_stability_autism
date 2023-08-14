@@ -268,6 +268,7 @@ ggplot(dots_guille_type_0, aes(AQ_attencion_detail, bias)) +
   geom_point()+
   labs(x = "AQ attencion detail", y = "Bias")+
   geom_smooth(method = "lm") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
   theme_minimal() +             # Cambiar el tema a uno minimalista
   theme(
     axis.text = element_text(size = 12),
@@ -356,8 +357,9 @@ summary(m_1_AQ_attentional_switches)
 
 ggplot(dots_guille_type_1, aes(AQ_attentional_switches, bias)) +
   geom_point()+
-  labs(x = "AQ_attentional_switches", y = "bias")+
+  labs(x = "AQ attentional switches", y = "Bias")+
   geom_smooth(method = "lm")+
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
   theme(
     axis.text = element_text(size = 12),
     axis.title = element_text(size = 15),
