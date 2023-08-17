@@ -7,12 +7,12 @@ root <- rprojroot::is_rstudio_project
 basename(getwd())
 
 # load dataframe 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_long.Rda")
+filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_filter_long.Rda")
 load(file= filepath)
 
 
 # create bias column
-d <- df_exp_long %>%
+d <- df_exp_filter_long %>%
   group_by(participant) %>%
   mutate(bias = response[type == "many"] - response[type == "morph"])
 
@@ -31,9 +31,13 @@ df_exp_with_stats <- d %>%
   left_join(stimulus_stats, by = "type")
 
 # Filter out responses that are more than 3 standard deviations away from the mean.
+ participants_to_remove <- df_exp_with_stats %>%
+  filter(abs(response - mean_response) >= 2 * sd_response) %>%
+  distinct(participant) %>%
+  pull(participant)
+   
 d_without_outliers <- df_exp_with_stats %>%
-  filter(abs(response - mean_response) <= 2 * sd_response)
-
+  filter(!participant %in% participants_to_remove)
 
 #### Regression analysis
 

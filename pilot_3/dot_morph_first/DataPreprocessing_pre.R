@@ -17,7 +17,7 @@ basename(getwd())
 #read each line and convert
 
 # data
-content<-readLines(root$find_file("pilot_3/dot_morph_first/jatos_results_20230816142841.txt"))
+content<-readLines(root$find_file("pilot_3/dot_morph_first/jatos_results_20230817132059.txt"))
 res<-lapply(content,fromJSON)
 
 # load the function to read the .txt results from JATOS and create a dataframe
