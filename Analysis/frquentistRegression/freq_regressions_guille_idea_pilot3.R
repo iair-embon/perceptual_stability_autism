@@ -49,15 +49,53 @@ summary(m)
 m <- lm(response ~ type, data= d_without_outliers)
 summary(m)
 
+## plot the type and responses
+
+ggplot(d, aes(x = type, y = response, fill = type)) +
+  geom_violin(color = "black", alpha = 0.7) +  # Violin plot
+  geom_jitter(width = 0.1, alpha = 0.5) +  # Puntos con jitter
+  stat_summary(fun = "mean",
+               geom = "crossbar", 
+               width = 0.5,
+               colour = "black")+
+  ylab("Responses") +
+  xlab("Type") +
+  scale_fill_discrete(name = "Type") +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1,1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.title.x=element_text(size = 30),
+        axis.text.x=element_text(size = 30),
+        axis.text.y = element_text(size = 30),
+        axis.title.y = element_text(size = 30),
+        legend.position = "none")
 
 # now predict the bias based on AQ
 m_1 <- lm(bias ~ AQ, data= d_without_outliers)
 summary(m_1)
 
-ggplot(d, aes(AQ, bias)) +
+ggplot(d_without_outliers, aes(x=AQ, y=bias)) + 
   geom_point()+
-  labs(x = "AQ", y = "bias")+
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm",se = FALSE, color = "darkred")+
+  geom_ribbon(
+    aes(ymin = predict(lm(bias ~ AQ, data = d_without_outliers), newdata = data.frame(AQ = AQ), interval = "confidence")[, "lwr"],
+        ymax = predict(lm(bias ~ AQ, data = d_without_outliers), newdata = data.frame(AQ = AQ), interval = "confidence")[, "upr"]),
+    fill = "lightpink", alpha = 0.5)+
+  ylab("Bias [many-morph]") +
+  xlab("AQ") +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1,1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.title.x=element_text(size = 30),
+        axis.text.x=element_text(size = 30),
+        axis.text.y = element_text(size = 30),
+        axis.title.y = element_text(size = 30))
 
 
 # now predict the bias based on AQ_social
@@ -74,10 +112,26 @@ ggplot(d, aes(AQ_social, bias)) +
 m_1 <- lm(bias ~ AQ_attentional_switches, data= d_without_outliers)
 summary(m_1)
 
-ggplot(d, aes(AQ_attentional_switches, bias)) +
+ggplot(d_without_outliers, aes(x=AQ_attentional_switches, y=bias)) + 
   geom_point()+
-  labs(x = "AQ_attentional_switches", y = "bias")+
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm",se = FALSE, color = "darkred")+
+  geom_ribbon(
+    aes(ymin = predict(lm(bias ~ AQ_attentional_switches, data = d_without_outliers), newdata = data.frame(AQ_attentional_switches = AQ_attentional_switches), interval = "confidence")[, "lwr"],
+        ymax = predict(lm(bias ~ AQ_attentional_switches, data = d_without_outliers), newdata = data.frame(AQ_attentional_switches = AQ_attentional_switches), interval = "confidence")[, "upr"]),
+    fill = "lightpink", alpha = 0.5)+
+  ylab("Bias [many-morph]") +
+  xlab("AQ attentional switches") +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1,1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.title.x=element_text(size = 30),
+        axis.text.x=element_text(size = 30),
+        axis.text.y = element_text(size = 30),
+        axis.title.y = element_text(size = 30))
+
 
 # now predict the bias based on AQ_attencion_detail
 m_1 <- lm(bias ~ AQ_attencion_detail, data= d_without_outliers)
@@ -101,8 +155,22 @@ ggplot(d, aes(AQ_communication, bias)) +
 m_1 <- lm(bias ~ AQ_imagination, data= d_without_outliers)
 summary(m_1)
 
-ggplot(d, aes(AQ_imagination, bias)) +
+ggplot(d_without_outliers, aes(x=AQ_imagination, y=bias)) + 
   geom_point()+
-  labs(x = "AQ_imagination", y = "bias")+
-  geom_smooth(method = "lm")
-
+  geom_smooth(method = "lm",se = FALSE, color = "darkred")+
+  geom_ribbon(
+    aes(ymin = predict(lm(bias ~ AQ_imagination, data = d_without_outliers), newdata = data.frame(AQ_imagination = AQ_imagination), interval = "confidence")[, "lwr"],
+        ymax = predict(lm(bias ~ AQ_imagination, data = d_without_outliers), newdata = data.frame(AQ_imagination = AQ_imagination), interval = "confidence")[, "upr"]),
+    fill = "lightpink", alpha = 0.5)+
+  ylab("Bias [many-morph]") +
+  xlab("AQ imagination") +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1,1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.title.x=element_text(size = 30),
+        axis.text.x=element_text(size = 30),
+        axis.text.y = element_text(size = 30),
+        axis.title.y = element_text(size = 30))
