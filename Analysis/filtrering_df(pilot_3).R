@@ -7,10 +7,10 @@ library(dplyr)
 root <- rprojroot::is_rstudio_project
 basename(getwd())
 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_filtered_mod.csv")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_filtered_mod.csv")
 df_exp <- read.csv(file = filepath)
 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_NotExperimentData.csv")
+filepath <- root$find_file("pilot_3/dot_many_first/df_NotExperimentData.csv")
 df_demographic <- read.csv(file = filepath)
 
 ## make only one df
@@ -25,11 +25,11 @@ for (column_name in df_demographic_colnames) {
 ## save the dataframe
 df_exp_long <- df_exp
 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_long.Rda")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_long.Rda")
 save(df_exp_long,file = filepath)
 
 # save it in csv
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_long.csv")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_long.csv")
 write.csv(df_exp_long, file = filepath, row.names = FALSE)
 
 
@@ -55,11 +55,11 @@ paste("Total participants after filter: ", length(unique(df_exp_filter$participa
 ## save the filter dataframe
 df_exp_filter_long <- df_exp_filter
 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_filter_long.Rda")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_filter_long.Rda")
 save(df_exp_filter_long,file = filepath)
 
 # save it in csv
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_filter_long.csv")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_filter_long.csv")
 write.csv(df_exp_filter_long, file = filepath, row.names = FALSE)
 
 ## from long to wide data set
@@ -94,9 +94,9 @@ df_exp_filter_wide <- df_exp_filter_long %>%
 head(df_exp_filter_wide)
 
 # save both data set
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_filter_wide.csv")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_filter_wide.csv")
 write.csv(df_exp_filter_wide, file = filepath, row.names = FALSE)
 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_wide.csv")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_wide.csv")
 write.csv(df_exp_wide, file = filepath, row.names = FALSE)
 

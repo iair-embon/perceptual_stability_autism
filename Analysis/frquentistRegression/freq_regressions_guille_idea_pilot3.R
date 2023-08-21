@@ -7,7 +7,7 @@ root <- rprojroot::is_rstudio_project
 basename(getwd())
 
 # load dataframe 
-filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_filter_long.Rda")
+filepath <- root$find_file("pilot_3/dot_many_first/df_exp_long.Rda")
 load(file= filepath)
 
 

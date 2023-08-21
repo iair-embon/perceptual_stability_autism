@@ -21,7 +21,7 @@ content<-readLines(root$find_file("pilot_3/dot_morph_first/jatos_results_2023081
 res<-lapply(content,fromJSON)
 
 # load the function to read the .txt results from JATOS and create a dataframe
-source(root$find_file("Analysis/AuxiliaryFunctions/initial_df_pilot_guille.R"))
+source(root$find_file("Analysis/AuxiliaryFunctions/initial_df_pilot_guille_dots_morph_first.R"))
 df_list <- initial_df(res)
 
 # df_NotExperimentData: for data of each subject.
