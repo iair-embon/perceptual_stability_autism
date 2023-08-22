@@ -12,9 +12,10 @@ load(file= filepath)
 
 
 # create bias column
-d <- df_exp_filter_long %>%
+d <- df_exp_long %>%
   group_by(participant) %>%
-  mutate(bias = response[type == "many"] - response[type == "morph"])
+  mutate(bias = response[type == "many"] - response[type == "morph"]) %>%
+  ungroup()
 
 #### I discard those responses that are 2 deviations away from the mean of their respective group.
 
@@ -51,7 +52,7 @@ summary(m)
 
 ## plot the type and responses
 
-ggplot(d, aes(x = type, y = response, fill = type)) +
+ggplot(d_without_outliers, aes(x = type, y = response, fill = type)) +
   geom_violin(color = "black", alpha = 0.7) +  # Violin plot
   geom_jitter(width = 0.1, alpha = 0.5) +  # Puntos con jitter
   stat_summary(fun = "mean",
