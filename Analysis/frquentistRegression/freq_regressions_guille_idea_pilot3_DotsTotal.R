@@ -258,7 +258,7 @@ ggplot(df_exp_long_DotsTotal_without_outliers, aes(x = order, y = bias, fill = o
 
 # so, the results show that the order affected the bias
 
-m_1 <- lm(bias ~ order + AQ, data= df_exp_long_DotsTotal_without_outliers)
+m_1 <- lm(bias ~ order + AQ + order:AQ, data= df_exp_long_DotsTotal_without_outliers)
 summary(m_1)
 
 # Crear el gráfico
@@ -278,5 +278,10 @@ ggplot(df_exp_long_DotsTotal_without_outliers, aes(x = AQ, y = bias)) +
     axis.title.x = element_text(size = 30),
     axis.text.x = element_text(size = 30),
     axis.text.y = element_text(size = 30),
-    axis.title.y = element_text(size = 30)
+    axis.title.y = element_text(size = 30),
+    strip.text = element_text(size = 20)
   )
+
+## testing differences between many and morph, interparticipants
+
+
