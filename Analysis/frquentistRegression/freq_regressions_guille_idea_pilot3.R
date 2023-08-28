@@ -74,6 +74,12 @@ ggplot(d_without_outliers, aes(x = type, y = response, fill = type)) +
         axis.title.y = element_text(size = 30),
         legend.position = "none")
 
+# paired t-test
+mo <- d_without_outliers %>% filter(type == "morph") %>% select(response)
+ma <- d_without_outliers %>% filter(type == "many") %>% select(response)
+t.test(mo$response, ma$response, paired = TRUE)
+
+
 # now predict the bias based on AQ
 m_1 <- lm(bias ~ AQ, data= d_without_outliers)
 summary(m_1)

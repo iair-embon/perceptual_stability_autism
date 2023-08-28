@@ -13,8 +13,7 @@ df_exp_long_DotsTotal <- read.csv(filepath)
 
 
 #### I discard those responses that are 2 deviations away from the mean of their respective group.
-d <- df_exp_long_DotsTotal %>%
-  filter(order == "manyFirst")
+d <- df_exp_long_DotsTotal
 
 # Calculates the mean and standard deviation for each stimulus.
 stimulus_stats <- d %>%
@@ -77,7 +76,10 @@ ggplot(d_without_outliers, aes(x = type, y = response, fill = type)) +
         legend.position = "none")
 
 # now predict the bias based on AQ
-m_1 <- lm(bias ~ AQ, data= d_without_outliers)
+d_without_outliers <- d_without_outliers %>%
+  mutate(order_code = if_else(order == "morphFirst", -1 , 1))
+
+m_1 <- lm(bias ~ AQ + order_code + sex + age, data= d_without_outliers)
 summary(m_1)
 
 ggplot(d_without_outliers, aes(x=AQ, y=bias)) + 
@@ -210,26 +212,6 @@ ggplot(d_without_outliers, aes(x=AQ_imagination, y=bias)) +
 
 ### now I will explore the relation between bias, AQ and order
 
-# discard outliers in the total data set
-
-stimulus_stats <- df_exp_long_DotsTotal %>%
-  group_by(type) %>%
-  summarize(
-    mean_response = mean(response),
-    sd_response = sd(response)
-  )
-
-df_exp_with_stats <- df_exp_long_DotsTotal %>%
-  left_join(stimulus_stats, by = "type")
-
-participants_to_remove <- df_exp_with_stats %>%
-  filter(abs(response - mean_response) >= 2 * sd_response) %>%
-  distinct(participant) %>%
-  pull(participant)
-
-df_exp_long_DotsTotal_without_outliers <- df_exp_with_stats %>%
-  filter(!participant %in% participants_to_remove)
-
 # regression model
 m_1 <- lm(bias ~ order, data= df_exp_long_DotsTotal_without_outliers)
 summary(m_1)
@@ -255,10 +237,47 @@ ggplot(df_exp_long_DotsTotal_without_outliers, aes(x = order, y = bias, fill = o
         axis.text.y = element_text(size = 30),
         axis.title.y = element_text(size = 30),
         legend.position = "none")
-
 # so, the results show that the order affected the bias
 
-m_1 <- lm(bias ~ order + AQ + order:AQ, data= df_exp_long_DotsTotal_without_outliers)
+
+# paired t-test, testing differences between many and morph, interparticipants
+
+mo <- d_without_outliers %>% filter(type == "morph" & order == "morphFirst") %>% select(response)
+ma <- d_without_outliers %>% filter(type == "many" & order == "manyFirst") %>% select(response)
+
+t.test(mo$response, ma$response)
+
+d_plot <- data.frame(type = c(rep("morph", nrow(mo)),
+                              rep("many", nrow(ma))),
+                     response = c(mo$response,ma$response))
+
+ggplot(d_plot, aes(x = type, y = response, fill = type)) +
+  geom_violin(color = "black", alpha = 0.7) +  # Violin plot
+  geom_jitter(width = 0.1, alpha = 0.5) +  # Puntos con jitter
+  stat_summary(fun = "mean",
+               geom = "crossbar", 
+               width = 0.5,
+               colour = "black")+
+  ylab("response") +
+  xlab("First Trial") +
+  scale_fill_discrete(name = "First Trial") +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1,1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.title.x=element_text(size = 30),
+        axis.text.x=element_text(size = 30),
+        axis.text.y = element_text(size = 30),
+        axis.title.y = element_text(size = 30),
+        legend.position = "none")
+
+# linear regression model
+summary(lm(response ~ type, data = d_plot))
+
+
+m_1 <- lm(bias ~ order + AQ, data= df_exp_long_DotsTotal_without_outliers)
 summary(m_1)
 
 # Crear el gráfico
@@ -281,7 +300,5 @@ ggplot(df_exp_long_DotsTotal_without_outliers, aes(x = AQ, y = bias)) +
     axis.title.y = element_text(size = 30),
     strip.text = element_text(size = 20)
   )
-
-## testing differences between many and morph, interparticipants
 
 
