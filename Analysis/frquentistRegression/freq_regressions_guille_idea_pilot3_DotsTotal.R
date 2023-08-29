@@ -11,30 +11,50 @@ filepath <- root$find_file("pilot_3/df_exp_long_DotsTotal.csv")
 #load(file= filepath)
 df_exp_long_DotsTotal <- read.csv(filepath)
 
-
-#### I discard those responses that are 2 deviations away from the mean of their respective group.
 d <- df_exp_long_DotsTotal
 
-# Calculates the mean and standard deviation for each stimulus.
-stimulus_stats <- d %>%
-  group_by(type) %>%
-  summarize(
-    mean_response = mean(response),
-    sd_response = sd(response)
-  )
+#### outliers
+outliers <- function(d, by = "bias", sd_out = 2){
+  if(by == "bias"){
+    sd_bias <- sd(d$bias)
+    mean_bias <- mean(d$bias)
+    # Filter out responses that are more than X standard deviations away from the mean.
+    participants_to_remove <- d %>%
+      filter(abs(bias - mean_bias) >= sd_out * sd_bias) %>%
+      distinct(participant) %>%
+      pull(participant)
+    
+    d_without_outliers <- d %>%
+      filter(!participant %in% participants_to_remove)
+  }
+  
+  if(by == "response"){
+    ## discard those responses that are 2 deviations away from the mean of their respective group.
+    
+    # Calculates the mean and standard deviation for each stimulus.
+    stimulus_stats <- d %>%
+      group_by(type) %>%
+      summarize(
+        mean_response = mean(response),
+        sd_response = sd(response)
+      )
+    # Join the statistics back to the original dataframe.
+    df_exp_with_stats <- d %>%
+      left_join(stimulus_stats, by = "type")
+    # Filter out responses that are more than X standard deviations away from the mean.
+    participants_to_remove <- df_exp_with_stats %>%
+      filter(abs(response - mean_response) >= sd_out * sd_response) %>%
+      distinct(participant) %>%
+      pull(participant)
+    
+    d_without_outliers <- df_exp_with_stats %>%
+      filter(!participant %in% participants_to_remove)
+  }
+  
+  return(d_without_outliers)
+} # by = "response"
 
-# Join the statistics back to the original dataframe.
-df_exp_with_stats <- d %>%
-  left_join(stimulus_stats, by = "type")
-
-# Filter out responses that are more than 3 standard deviations away from the mean.
-participants_to_remove <- df_exp_with_stats %>%
-  filter(abs(response - mean_response) >= 2 * sd_response) %>%
-  distinct(participant) %>%
-  pull(participant)
-   
-d_without_outliers <- df_exp_with_stats %>%
-  filter(!participant %in% participants_to_remove)
+d_without_outliers <- outliers(d, by = "bias", sd_out = 2)
 
 #### Regression analysis
 
@@ -77,12 +97,14 @@ ggplot(d_without_outliers, aes(x = type, y = response, fill = type)) +
 
 # now predict the bias based on AQ
 d_without_outliers <- d_without_outliers %>%
-  mutate(order_code = if_else(order == "morphFirst", -1 , 1))
+  mutate(order_code = if_else(order == "morphFirst", -1 , 1)) %>%
+  mutate(AQ_scaled = AQ-mean(AQ)) %>%
+  mutate(age_scaled = age-mean(age))
 
-m_1 <- lm(bias ~ AQ + order_code + sex + age, data= d_without_outliers)
+m_1 <- lm(bias ~ AQ_scaled + order_code + sex + age_scaled, data= d_without_outliers)
 summary(m_1)
 
-ggplot(d_without_outliers, aes(x=AQ, y=bias)) + 
+ggplot(d_without_outliers, aes(x=AQ_scaled, y=bias)) + 
   geom_point()+
   geom_smooth(method = "lm",se = FALSE, color = "darkred")+
   geom_ribbon(
@@ -102,8 +124,41 @@ ggplot(d_without_outliers, aes(x=AQ, y=bias)) +
         axis.text.y = element_text(size = 30),
         axis.title.y = element_text(size = 30))
 
+## diagnosis of the model
 
-# now predict the bias based on AQ_social
+# Linearity of the data
+plot(m_1, 1)
+
+# Normality of residuals
+plot(m_1, 2)
+
+# distribution of studentized residuals
+library(MASS)
+sresid <- studres(m_1) 
+shapiro.test(sresid)
+
+# High leverage points
+plot(m_1, 5)
+
+#Cook's distance
+plot(m_1, 4)
+
+# homoscedasticity
+library(car)
+# non-constant error variance test
+ncvTest(m_1)
+plot(m_1, 3)
+
+# independence (autocorrelation)
+# durbin watson test
+durbinWatsonTest(m_1)
+
+
+m_1 <- lm(bias ~ AQ + order_code + sex + age, data= d_without_outliers)
+summary(m_1)
+
+
+## now predict the bias based on AQ_social
 m_1 <- lm(bias ~ AQ_social, data= d_without_outliers)
 summary(m_1)
 
@@ -213,10 +268,10 @@ ggplot(d_without_outliers, aes(x=AQ_imagination, y=bias)) +
 ### now I will explore the relation between bias, AQ and order
 
 # regression model
-m_1 <- lm(bias ~ order, data= df_exp_long_DotsTotal_without_outliers)
+m_1 <- lm(bias ~ order, data= d_without_outliers)
 summary(m_1)
 
-ggplot(df_exp_long_DotsTotal_without_outliers, aes(x = order, y = bias, fill = order)) +
+ggplot(d_without_outliers, aes(x = order, y = bias, fill = order)) +
   geom_violin(color = "black", alpha = 0.7) +  # Violin plot
   geom_jitter(width = 0.1, alpha = 0.5) +  # Puntos con jitter
   stat_summary(fun = "mean",
@@ -277,11 +332,11 @@ ggplot(d_plot, aes(x = type, y = response, fill = type)) +
 summary(lm(response ~ type, data = d_plot))
 
 
-m_1 <- lm(bias ~ order + AQ, data= df_exp_long_DotsTotal_without_outliers)
+m_1 <- lm(bias ~ order + AQ, data= d_without_outliers)
 summary(m_1)
 
 # Crear el gráfico
-ggplot(df_exp_long_DotsTotal_without_outliers, aes(x = AQ, y = bias)) +
+ggplot(d_without_outliers, aes(x = AQ, y = bias)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color = "darkred") +
   ylab("Bias [many-morph]") +
