@@ -54,7 +54,7 @@ outliers <- function(d, by = "bias", sd_out = 2){
   return(d_without_outliers)
 } # by = "response"
 
-d_without_outliers <- outliers(d, by = "bias", sd_out = 2)
+d_without_outliers <- outliers(d, by = "response", sd_out = 2)
 
 #### Regression analysis
 
@@ -95,14 +95,125 @@ ggplot(d_without_outliers, aes(x = type, y = response, fill = type)) +
         axis.title.y = element_text(size = 30),
         legend.position = "none")
 
+############################## guille last model 5/9/23
+
 # now predict the bias based on AQ
 d_without_outliers <- d_without_outliers %>%
-  mutate(order_code = if_else(order == "morphFirst", -1 , 1)) %>%
+  mutate(order_code = if_else(order == "morphFirst", 0 , 1)) %>%
   mutate(AQ_scaled = AQ-mean(AQ)) %>%
+  mutate(sex_code = if_else(sex == 'Male',0,1)) %>%
   mutate(age_scaled = age-mean(age))
 
-m_1 <- lm(bias ~ AQ_scaled + order_code + sex + age_scaled, data= d_without_outliers)
+m_1 <- lm(bias ~  order_code + AQ_scaled + age + sex_code, data= d_without_outliers)
+m_1 <- lm(bias ~  order_code + AQ_scaled, data= d_without_outliers)
 summary(m_1)
+
+
+# table
+
+require(gtsummary)
+require(dplyr)
+library(webshot2)
+
+table1 <- m_1 %>%
+  tbl_regression(
+    intercept = T,
+    pvalue_fun = ~style_pvalue(.x, digits = 3),
+    estimate_fun =  ~style_number (.x, digits = 3),
+    label = list(
+      "(Intercept)" ~ "Intercept",
+      "order_code" ~ "order code[manyFirst]",
+      "AQ_scaled" ~ "AQ scaled",
+      "age" ~ "Age",
+      "sex_code" ~ "sex code[female]")
+  ) %>%
+  modify_header(label ~ "") %>%
+  modify_column_unhide(column = std.error) %>%
+  add_global_p() %>%
+  #add_q() %>%
+  bold_p(t = 0.05, q = FALSE) %>%
+  add_glance_table(include = c(r.squared, adj.r.squared))
+
+gt::gtsave(as_gt(table1), file = "pilot_3/table_final_model.png")
+
+
+# coefficient plot
+
+require(tidyverse)
+require(jtools)
+require(broom.mixed)
+
+plot_summs(m_1, coefs = c('Intercept' = "(Intercept)",
+                        'order code[manyFirst]'='order_code',
+                        'AQ scaled' = 'AQ_scaled',
+                        'Age'='age',
+                        'sex code[female]'='sex_code'),
+           colors = "black")+
+  ylab("") +
+  xlab("Regression coefficient") +
+  #scale_x_continuous(breaks=seq(-0.03,0.03,0.02))+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1,1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30), 
+        axis.title.y = element_text(size = 30),
+        axis.title.x = element_text(size = 30))
+
+ggsave("pilot_3/coefficentPlot_final_model.png", 
+       width = 13, height = 6)
+
+
+# convert the normalized AQ scores to the original scores
+intercept_order_code_0 <- coefficients(m_1)[[1]]
+slope <- coefficients(m_1)[[3]] # 0 = morph first
+intercept_order_code_1 <- coefficients(m_1)[[1]] + coefficients(m_1)[[2]] # 1 = many first
+
+
+ggplot(d_without_outliers, aes(x = AQ_scaled, y = bias)) + 
+  geom_point(aes(color = factor(order_code))) +
+  geom_abline(
+    aes(intercept = intercept_order_code_0, slope = slope),
+    color = "darkred", size = 1.5
+  ) +
+  geom_abline(
+    aes(intercept = intercept_order_code_1, slope = slope),
+    color = "darkblue", size = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ_scaled") +
+  labs(color = "order code") +
+  scale_color_manual(
+    values = c("0" = "darkred", "1" = "darkblue"),
+    labels = c("α + βaq x AQ_scaled", "α + βor x order_code + βaq x AQ_scaled")
+  ) +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 20)
+  )
+
+
+ggsave("Figures/Figures/4b.png", 
+       width = 10, height = 6)
+
+
+################################### end guille las desing
+
 
 ggplot(d_without_outliers, aes(x=AQ_scaled, y=bias)) + 
   geom_point()+
@@ -297,11 +408,14 @@ ggplot(d_without_outliers, aes(x = order, y = bias, fill = order)) +
 
 # paired t-test, testing differences between many and morph, interparticipants
 
-mo <- d_without_outliers %>% filter(type == "morph" & order == "morphFirst") %>% select(response)
-ma <- d_without_outliers %>% filter(type == "many" & order == "manyFirst") %>% select(response)
+mo <- d_without_outliers %>% filter(type == "morph" & order == "morphFirst") %>% select(response, type)
+ma <- d_without_outliers %>% filter(type == "many" & order == "manyFirst") %>% select(response, type)
 
 t.test(mo$response, ma$response)
 
+# u mann whitney test
+d_u_test <- rbind(mo, ma)
+wilcox.test(response ~ type, data = d_u_test)
 d_plot <- data.frame(type = c(rep("morph", nrow(mo)),
                               rep("many", nrow(ma))),
                      response = c(mo$response,ma$response))
