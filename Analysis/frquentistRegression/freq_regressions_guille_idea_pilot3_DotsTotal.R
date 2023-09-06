@@ -104,8 +104,8 @@ d_without_outliers <- d_without_outliers %>%
   mutate(sex_code = if_else(sex == 'Male',0,1)) %>%
   mutate(age_scaled = age-mean(age))
 
-m_1 <- lm(bias ~  order_code + AQ_scaled + age + sex_code, data= d_without_outliers)
-m_1 <- lm(bias ~  order_code + AQ_scaled, data= d_without_outliers)
+m_1 <- lm(bias ~  order_code + AQ_scaled + age_scaled + sex_code, data= d_without_outliers)
+#m_1 <- lm(bias ~  order_code + AQ_scaled, data= d_without_outliers)
 summary(m_1)
 
 
@@ -124,7 +124,7 @@ table1 <- m_1 %>%
       "(Intercept)" ~ "Intercept",
       "order_code" ~ "order code[manyFirst]",
       "AQ_scaled" ~ "AQ scaled",
-      "age" ~ "Age",
+      "age_scaled" ~ "Age scaled",
       "sex_code" ~ "sex code[female]")
   ) %>%
   modify_header(label ~ "") %>%
@@ -146,7 +146,7 @@ require(broom.mixed)
 plot_summs(m_1, coefs = c('Intercept' = "(Intercept)",
                         'order code[manyFirst]'='order_code',
                         'AQ scaled' = 'AQ_scaled',
-                        'Age'='age',
+                        'Age scaled'='age_scaled',
                         'sex code[female]'='sex_code'),
            colors = "black")+
   ylab("") +
@@ -169,20 +169,20 @@ ggsave("pilot_3/coefficentPlot_final_model.png",
 
 
 # convert the normalized AQ scores to the original scores
-intercept_order_code_0 <- coefficients(m_1)[[1]]
+intercept_order_code_0 <- coefficients(m_1)[[1]] + coefficients(m_1)[[4]]
+intercept_order_code_1 <- coefficients(m_1)[[1]] + coefficients(m_1)[[2]] + coefficients(m_1)[[4]] # 1 = many first 
 slope <- coefficients(m_1)[[3]] # 0 = morph first
-intercept_order_code_1 <- coefficients(m_1)[[1]] + coefficients(m_1)[[2]] # 1 = many first
 
 
 ggplot(d_without_outliers, aes(x = AQ_scaled, y = bias)) + 
   geom_point(aes(color = factor(order_code))) +
   geom_abline(
     aes(intercept = intercept_order_code_0, slope = slope),
-    color = "darkred", size = 1.5
+    color = "darkred", linewidth = 1.5
   ) +
   geom_abline(
     aes(intercept = intercept_order_code_1, slope = slope),
-    color = "darkblue", size = 1.5
+    color = "darkblue", linewidth = 1.5
   ) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   ylab("bias") +
@@ -208,7 +208,7 @@ ggplot(d_without_outliers, aes(x = AQ_scaled, y = bias)) +
   )
 
 
-ggsave("Figures/Figures/4b.png", 
+ggsave("pilot_3/scatterPlot_final_model.png", 
        width = 10, height = 6)
 
 

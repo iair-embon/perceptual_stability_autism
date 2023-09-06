@@ -2,12 +2,18 @@
 library(stringr)
 library(dplyr)
 library(ggplot2)
+require(gtsummary)
+library(webshot2)
+require(tidyverse)
+require(jtools)
+require(broom.mixed)
+
 
 root <- rprojroot::is_rstudio_project
 basename(getwd())
 
 # load dataframe 
-filepath <- root$find_file("pilot_3/dot_many_first/df_exp_long.Rda")
+filepath <- root$find_file("pilot_3/dot_morph_first/df_exp_long.Rda")
 load(file= filepath)
 
 
@@ -59,7 +65,7 @@ outliers <- function(d, by = "bias", sd_out = 2){
   return(d_without_outliers)
 } # by = "response"
 
-d_without_outliers <- outliers(d, by = "bias", sd_out = 2)
+d_without_outliers <- outliers(d, by = "response", sd_out = 2)
 
 ## plot the type and responses
 
@@ -81,13 +87,57 @@ ggplot(d_without_outliers, aes(x = bias)) +
         legend.position = "none")
 
 
+ggsave("pilot_3/dot_morph_first/hist_morph_first.png", 
+       width = 10, height = 6)
+
+
 ## Test agains 0 
 shapiro.test(d_without_outliers$bias)
 wilcox.test(d_without_outliers$bias, mu = 0)
 
 # now predict the bias based on AQ
-m_1 <- lm(bias ~ AQ, data= d_without_outliers)
+d_without_outliers <- d_without_outliers %>%
+  mutate(AQ_scaled = AQ-mean(AQ)) %>%
+  mutate(sex_code = if_else(sex == 'Male',0,1)) %>%
+  mutate(age_scaled = age-mean(age))
+
+m_1 <- lm(bias ~ AQ_scaled + age_scaled + sex_code, data= d_without_outliers)
 summary(m_1)
+
+# plot of the regression model
+
+# convert the normalized AQ scores to the original scores
+intercept <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+slope <- coefficients(m_1)[[2]] 
+
+
+ggplot(d_without_outliers, aes(x = AQ_scaled, y = bias)) + 
+  geom_point(colour = "darkred") +
+  geom_abline(
+    aes(intercept = intercept, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ_scaled") +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30)
+  )
+
+
+ggsave("pilot_3/dot_morph_first/scatterplotRegLine_morph_first_AQ.png", 
+       width = 7, height = 6)
+
+# another plot
 
 ggplot(d_without_outliers, aes(x=AQ, y=bias)) + 
   geom_point()+
@@ -111,10 +161,53 @@ ggplot(d_without_outliers, aes(x=AQ, y=bias)) +
         axis.title.y = element_text(size = 30))
 
 
-# now predict the bias based on AQ_social
-m_1 <- lm(bias ~ AQ_social, data= d_without_outliers)
+# now predict the bias based on AQ_social 
+
+d_without_outliers <- d_without_outliers %>%
+  mutate(AQ_sc_scaled = AQ_social-mean(AQ_social)) %>%
+  mutate(AQ_at_sw_scaled = AQ_attentional_switches-mean(AQ_attentional_switches)) %>%
+  mutate(AQ_at_dt_scaled = AQ_attencion_detail-mean(AQ_attencion_detail)) %>%
+  mutate(AQ_cm_scaled = AQ_communication-mean(AQ_communication)) %>%
+  mutate(AQ_im_scaled = AQ_imagination-mean(AQ_imagination))
+
+m_1 <- lm(bias ~ AQ_sc_scaled + age_scaled + sex_code, data= d_without_outliers)
 summary(m_1)
 
+# plot of the regression model
+
+# convert the normalized AQ scores to the original scores
+intercept <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+slope <- coefficients(m_1)[[2]] 
+
+
+ggplot(d_without_outliers, aes(x = AQ_sc_scaled, y = bias)) + 
+  geom_point(colour = "darkred") +
+  geom_abline(
+    aes(intercept = intercept, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ social scaled") +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30)
+  )
+
+
+ggsave("pilot_3/dot_morph_first/scatterplotRegLine_morph_first_AQ_social.png", 
+       width = 7, height = 6)
+
+
+# other plot
 ggplot(d_without_outliers, aes(x=AQ_social, y=bias)) + 
   geom_point()+
   geom_smooth(method = "lm",se = FALSE, color = "darkred")+
@@ -138,9 +231,89 @@ ggplot(d_without_outliers, aes(x=AQ_social, y=bias)) +
 
 
 # now predict the bias based on AQ_attentional_switches
-m_1 <- lm(bias ~ AQ_attentional_switches, data= d_without_outliers)
+
+m_1 <- lm(bias ~ AQ_at_sw_scaled + age_scaled + sex_code, data= d_without_outliers)
 summary(m_1)
 
+# plot of the regression model
+
+## next plot, only for morph first (sex_code significant - two intercept)
+
+# convert the normalized AQ scores to the original scores
+intercept_male <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+intercept_female <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]] + coefficients(m_1)[[4]]
+slope <- coefficients(m_1)[[2]] 
+
+ggplot(d_without_outliers, aes(x = AQ_at_sw_scaled, y = bias)) + 
+  geom_point(aes(color = factor(sex_code))) +
+  geom_abline(
+    aes(intercept = intercept_male, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_abline(
+    aes(intercept = intercept_female, slope = slope),
+    color = "red", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ at sw scaled") +
+  labs(color = "Sex") +
+  scale_color_manual(
+    values = c("0" = "darkred", "1" = "red"),
+    labels = c("male", "female")
+  ) +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 20)
+  )
+
+ggsave("pilot_3/dot_morph_first/scatterplotRegLine_morhp_first_AQ_at_sw.png", 
+       width = 7, height = 6)
+
+## next plot, only for many first
+
+# intercept <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+# slope <- coefficients(m_1)[[2]] 
+
+
+# ggplot(d_without_outliers, aes(x = AQ_at_sw_scaled, y = bias)) + 
+#   geom_point(colour = "darkred") +
+#   geom_abline(
+#     aes(intercept = intercept, slope = slope),
+#     color = "darkred", linewidth = 1.5
+#   ) +
+#   geom_hline(yintercept = 0, linetype = "dashed") +
+#   ylab("bias") +
+#   xlab("AQ Attentional Sw scaled") +
+#   theme(
+#     axis.line = element_line(colour = "black"),
+#     panel.grid.major = element_blank(),
+#     panel.grid.minor = element_blank(),
+#     panel.border = element_blank(),
+#     plot.margin = margin(1, 1, 1, 1, "cm"),
+#     panel.background = element_blank(),
+#     axis.title.x = element_text(size = 30),
+#     axis.text.x = element_text(size = 30),
+#     axis.text.y = element_text(size = 30),
+#     axis.title.y = element_text(size = 30)
+#   )
+
+
+# ggsave("pilot_3/dot_many_first/scatterplotRegLine_many_first_AQ_at_sw.png", 
+#        width = 7, height = 6)
+
+
+# other plot
 ggplot(d_without_outliers, aes(x=AQ_attentional_switches, y=bias)) + 
   geom_point()+
   geom_smooth(method = "lm",se = FALSE, color = "darkred")+
@@ -163,10 +336,47 @@ ggplot(d_without_outliers, aes(x=AQ_attentional_switches, y=bias)) +
         axis.title.y = element_text(size = 30))
 
 
-# now predict the bias based on AQ_attencion_detail
-m_1 <- lm(bias ~ AQ_attencion_detail, data= d_without_outliers)
+
+# now predict the bias based on AQ_attention_to_detail
+
+m_1 <- lm(bias ~ AQ_at_dt_scaled + age_scaled + sex_code, data= d_without_outliers)
 summary(m_1)
 
+# plot of the regression model
+
+# convert the normalized AQ scores to the original scores
+intercept <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+slope <- coefficients(m_1)[[2]] 
+
+
+ggplot(d_without_outliers, aes(x = AQ_at_dt_scaled, y = bias)) + 
+  geom_point(colour = "darkred") +
+  geom_abline(
+    aes(intercept = intercept, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ att to det scaled") +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30)
+  )
+
+
+ggsave("pilot_3/dot_morph_first/scatterplotRegLine_morph_first_AQ_at_dt.png", 
+       width = 7, height = 6)
+
+
+# other plot
 ggplot(d_without_outliers, aes(x=AQ_attencion_detail, y=bias)) + 
   geom_point()+
   geom_smooth(method = "lm",se = FALSE, color = "darkred")+
@@ -189,8 +399,45 @@ ggplot(d_without_outliers, aes(x=AQ_attencion_detail, y=bias)) +
         axis.title.y = element_text(size = 30))
 
 # now predict the bias based on AQ_communication
-m_1 <- lm(bias ~ AQ_communication, data= d_without_outliers)
+
+m_1 <- lm(bias ~ AQ_cm_scaled + age_scaled + sex_code, data= d_without_outliers)
 summary(m_1)
+
+# plot of the regression model
+
+# convert the normalized AQ scores to the original scores
+intercept <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+slope <- coefficients(m_1)[[2]] 
+
+
+ggplot(d_without_outliers, aes(x = AQ_cm_scaled, y = bias)) + 
+  geom_point(colour = "darkred") +
+  geom_abline(
+    aes(intercept = intercept, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ commun scaled") +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30)
+  )
+
+
+ggsave("pilot_3/dot_morph_first/scatterplotRegLine_morph_first_AQ_cm.png", 
+       width = 7, height = 6)
+
+
+# other plot
 
 ggplot(d_without_outliers, aes(x=AQ_communication, y=bias)) + 
   geom_point()+
@@ -214,9 +461,45 @@ ggplot(d_without_outliers, aes(x=AQ_communication, y=bias)) +
         axis.title.y = element_text(size = 30))
 
 # now predict the bias based on AQ_imagination
-m_1 <- lm(bias ~ AQ_imagination, data= d_without_outliers)
+
+m_1 <- lm(bias ~ AQ_im_scaled + age_scaled + sex_code, data= d_without_outliers)
 summary(m_1)
 
+# plot of the regression model
+
+# convert the normalized AQ scores to the original scores
+intercept <- coefficients(m_1)[[1]] + coefficients(m_1)[[3]]
+slope <- coefficients(m_1)[[2]] 
+
+
+ggplot(d_without_outliers, aes(x = AQ_im_scaled, y = bias)) + 
+  geom_point(colour = "darkred") +
+  geom_abline(
+    aes(intercept = intercept, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("bias") +
+  xlab("AQ imagin scaled") +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30)
+  )
+
+
+ggsave("pilot_3/dot_morph_first/scatterplotRegLine_morph_first_AQ_im.png", 
+       width = 7, height = 6)
+
+
+# other plot
 ggplot(d_without_outliers, aes(x=AQ_imagination, y=bias)) + 
   geom_point()+
   geom_smooth(method = "lm",se = FALSE, color = "darkred")+
