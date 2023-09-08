@@ -144,10 +144,10 @@ require(jtools)
 require(broom.mixed)
 
 plot_summs(m_1, coefs = c('Intercept' = "(Intercept)",
-                        'order code[manyFirst]'='order_code',
-                        'AQ scaled' = 'AQ_scaled',
-                        'Age scaled'='age_scaled',
-                        'sex code[female]'='sex_code'),
+                        'order[manyFirst]'='order_code',
+                        'AQ.norm' = 'AQ_scaled',
+                        'Age.norm'='age_scaled',
+                        'sex[female]'='sex_code'),
            colors = "black")+
   ylab("") +
   xlab("Regression coefficient") +
@@ -167,6 +167,40 @@ plot_summs(m_1, coefs = c('Intercept' = "(Intercept)",
 ggsave("pilot_3/coefficentPlot_final_model.png", 
        width = 13, height = 6)
 
+# other coefficient plot
+
+library(ggplot2)
+library(broom)
+
+coefs <- summary(m_1)$coefficients
+
+coefs_df <- as.data.frame(coefs)
+
+ggplot(coefs_df, aes(x = row.names(coefs_df), y = Estimate)) +
+  geom_bar(stat = "identity", fill = "#69b3a2",  width = 0.8, position = "dodge") +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`, ymax = Estimate + `Std. Error`), width = 0.2, color = "black") +
+  geom_hline(yintercept = 0) +
+  labs(y = "Regression coefficient", x = "Variable") +
+  scale_x_discrete(labels = c(
+    "(Intercept)" = "Intercept",
+    "order_code" = "Order[manyFirst]",
+    "AQ_scaled" = "AQ.norm",
+    "age_scaled" = "Age.norm",
+    "sex_code" = "sex[female]"
+  )) +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        panel.background = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 30),
+        axis.text.y = element_text(size = 30), 
+        axis.title.y = element_text(size = 30),
+        axis.title.x = element_blank())
+
+ggsave("pilot_3/coefficentPlot_final_model_v2.png", 
+       width = 9, height = 10)
 
 # convert the normalized AQ scores to the original scores
 intercept_order_code_0 <- coefficients(m_1)[[1]] + coefficients(m_1)[[4]]
