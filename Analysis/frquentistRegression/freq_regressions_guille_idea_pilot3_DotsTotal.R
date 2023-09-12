@@ -2,6 +2,8 @@
 library(stringr)
 library(dplyr)
 library(ggplot2)
+require(gtsummary)
+library(webshot2)
 
 root <- rprojroot::is_rstudio_project
 basename(getwd())
@@ -110,11 +112,6 @@ summary(m_1)
 
 
 # table
-
-require(gtsummary)
-require(dplyr)
-library(webshot2)
-
 table1 <- m_1 %>%
   tbl_regression(
     intercept = T,
@@ -505,3 +502,80 @@ ggplot(d_without_outliers, aes(x = AQ, y = bias)) +
   )
 
 
+########## yuval's idea of bias
+
+d_without_outliers <- d_without_outliers %>%
+  group_by(participant) %>%
+  mutate(bias_yuval = response[type == "morph"]/ response[type == "many"] ) %>%
+  ungroup()
+
+d_without_outliers <- d_without_outliers %>%
+  mutate(order_code = if_else(order == "morphFirst", 0 , 1)) %>%
+  mutate(AQ_scaled = AQ-mean(AQ)) %>%
+  mutate(sex_code = if_else(sex == 'Male',0,1)) %>%
+  mutate(age_scaled = age-mean(age))
+
+m_1 <- lm(bias_yuval ~  order_code + AQ_scaled + age_scaled + sex_code, data= d_without_outliers)
+#m_1 <- lm(bias ~  order_code + AQ_scaled, data= d_without_outliers)
+summary(m_1)
+
+
+# table
+table1 <- m_1 %>%
+  tbl_regression(
+    intercept = T,
+    pvalue_fun = ~style_pvalue(.x, digits = 3),
+    estimate_fun =  ~style_number (.x, digits = 3),
+    label = list(
+      "(Intercept)" ~ "Intercept",
+      "order_code" ~ "order code[manyFirst]",
+      "AQ_scaled" ~ "AQ scaled",
+      "age_scaled" ~ "Age scaled",
+      "sex_code" ~ "sex code[female]")
+  ) %>%
+  modify_header(label ~ "") %>%
+  modify_column_unhide(column = std.error) %>%
+  add_global_p() %>%
+  #add_q() %>%
+  bold_p(t = 0.05, q = FALSE) %>%
+  add_glance_table(include = c(r.squared, adj.r.squared))
+
+
+# convert the normalized AQ scores to the original scores
+intercept_order_code_0 <- coefficients(m_1)[[1]] + coefficients(m_1)[[4]]
+intercept_order_code_1 <- coefficients(m_1)[[1]] + coefficients(m_1)[[2]] + coefficients(m_1)[[4]] # 1 = many first 
+slope <- coefficients(m_1)[[3]] # 0 = morph first
+
+
+ggplot(d_without_outliers, aes(x = AQ_scaled, y = bias_yuval)) + 
+  geom_point(aes(color = factor(order_code))) +
+  geom_abline(
+    aes(intercept = intercept_order_code_0, slope = slope),
+    color = "darkred", linewidth = 1.5
+  ) +
+  geom_abline(
+    aes(intercept = intercept_order_code_1, slope = slope),
+    color = "darkblue", linewidth = 1.5
+  ) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  ylab("bias yuval") +
+  xlab("AQ_scaled") +
+  labs(color = "order code") +
+  scale_color_manual(
+    values = c("0" = "darkred", "1" = "darkblue"),
+    labels = c("order 1", "order 2")
+  ) +
+  theme(
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_blank(),
+    axis.title.x = element_text(size = 30),
+    axis.text.x = element_text(size = 30),
+    axis.text.y = element_text(size = 30),
+    axis.title.y = element_text(size = 30),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 20)
+  )
