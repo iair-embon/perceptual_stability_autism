@@ -25,8 +25,8 @@ data_normal = np.random.normal(mean_normal, sd_normal, 10000)
 
 ### Model for T = 1
 
-# 100 participant's latent responses
-participant_responses = np.random.choice(data_normal, 100)
+# 1 participant's latent response
+participant_responses = np.random.choice(data_normal, 1)
 
 # run model
 with pm.Model() as model_many_ManyFirst_T1:
@@ -43,13 +43,24 @@ with pm.Model() as model_many_ManyFirst_T1:
 # Plot 94% hdi for t1
 az.plot_posterior(trace_t1);
 
+# posterior predictive
+pm.sample_posterior_predictive(trace_t1, model=model_many_ManyFirst_T1, random_seed=2, extend_inferencedata=True)
+ax = az.plot_ppc(trace_t1, num_pp_samples=200)
+
+# prior predictive 
+pm.sample_prior_predictive(trace_t1, model=model_many_ManyFirst_T1, random_seed=2)
+ax = az.plot_ppc(trace_t1, num_pp_samples=200)
+
+
+
+
 pm.model_to_graphviz(model_many_ManyFirst_T1)
 
 
 ### Model for T = 2
 
-# New 100 participant's latent responses for T = 2
-participant_responses_t2 = np.random.choice(data_normal, 100)
+# New 1 participant's latent responses for T = 2
+participant_responses_t2 = np.random.choice(data_normal, 1)
 
 # Mean and std of posterior from T = 1
 mean_posterior_t1 = np.mean(trace_t1.posterior['μ'].values)
@@ -72,13 +83,18 @@ with pm.Model() as model_many_ManyFirst_T2:
 # Plot 94% hdi for t2
 az.plot_posterior(trace_t2);
 
+# posterior predictive
+pm.sample_posterior_predictive(trace_t2, model=model_many_ManyFirst_T2, random_seed=2, extend_inferencedata=True)
+ax = az.plot_ppc(trace_t2, num_pp_samples=200)
+
+
 pm.model_to_graphviz(model_many_ManyFirst_T2)
 
 
 ### Model for T = 3
 
-# New 100 participant's latent responses for T = 3
-participant_responses_t3 = np.random.choice(data_normal, 100)
+# New 1 participant's latent responses for T = 3
+participant_responses_t3 = np.random.choice(data_normal, 1)
 
 # Mean and std of posterior from T = 2
 mean_posterior_t2 = np.mean(trace_t2.posterior['μ_t2'].values)
@@ -101,13 +117,18 @@ with pm.Model() as model_many_ManyFirst_T3:
 # Plot 94% hdi for t3
 az.plot_posterior(trace_t3);
 
+# posterior predictive
+pm.sample_posterior_predictive(trace_t3, model=model_many_ManyFirst_T3, random_seed=2, extend_inferencedata=True)
+ax = az.plot_ppc(trace_t3, num_pp_samples=200)
+
+
 pm.model_to_graphviz(model_many_ManyFirst_T3)
 
 
 ### Model for T = 4
 
-# New 100 participant's REAL responses for T = 4 
-participant_responses_t4 = np.random.choice(data_normal, 100)
+# New 1 participant's REAL response for T = 4 
+participant_responses_t4 = np.random.choice(data_normal, 1)
 
 # Mean and std of posterior from T = 3
 mean_posterior_t3 = np.mean(trace_t3.posterior['μ_t3'].values)
@@ -129,6 +150,11 @@ with pm.Model() as model_many_ManyFirst_T4:
 
 # Plot 94% hdi for t4
 az.plot_posterior(trace_t4);
+
+# posterior predictive
+pm.sample_posterior_predictive(trace_t4, model=model_many_ManyFirst_T4, random_seed=2, extend_inferencedata=True)
+ax = az.plot_ppc(trace_t4, num_pp_samples=200)
+
 
 pm.model_to_graphviz(model_many_ManyFirst_T4)
 
