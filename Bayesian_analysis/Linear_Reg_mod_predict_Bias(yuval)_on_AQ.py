@@ -14,6 +14,8 @@ import scipy.stats as stats
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from tabulate import tabulate
+
 
 az.style.use('arviz-doc')
 
@@ -82,7 +84,7 @@ d_without_outliers['sex_code'] = d_without_outliers['sex_code'].replace(['Female
 print(d_without_outliers[['order_code', 'AQ_scaled','age_scaled','sex_code']])
 
 with pm.Model() as model_dot_AQ:
-    α = pm.Normal("α", mu=0, sigma=10)
+    α = pm.Normal("α", mu=1, sigma=10)
     β0 = pm.Normal("β0", mu=0, sigma=10)
     β1 = pm.Normal("β1", mu=0, sigma=10)
     β2 = pm.Normal("β2", mu=0, sigma=10)
@@ -121,6 +123,8 @@ ax = az.plot_ppc(idata_dot_AQ, num_pp_samples=200)
 
 # Plot of both regression lines, one per order
 df_summary = az.summary(idata_dot_AQ, var_names=['~μ']) 
+print(tabulate(df_summary, headers='keys', tablefmt='fancy_grid'))
+
 
 for index, row in df_summary.iterrows():
     globals()[index] = row['mean']

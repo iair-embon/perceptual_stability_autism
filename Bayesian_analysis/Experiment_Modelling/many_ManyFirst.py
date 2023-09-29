@@ -38,7 +38,8 @@ with pm.Model() as model_many_ManyFirst_T1:
     y = pm.Normal("y", mu=μ, sigma=σ, observed=participant_responses)
 
     # posterior samples
-    trace_t1 = pm.sample(chains=4)
+    # trace_t1 = pm.sample(chains=4)
+    trace_t1 = pm.sample(chains=4, tune=1000, draws=2000, target_accept=0.9)
 
 # Plot 94% hdi for t1
 az.plot_posterior(trace_t1);

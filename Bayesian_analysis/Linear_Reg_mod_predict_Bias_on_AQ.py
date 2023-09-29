@@ -14,6 +14,7 @@ import scipy.stats as stats
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from tabulate import tabulate
 
 az.style.use('arviz-doc')
 
@@ -117,6 +118,7 @@ ax = az.plot_ppc(idata_dot_AQ, num_pp_samples=200)
 
 # Plot of both regression lines, one per order
 df_summary = az.summary(idata_dot_AQ, var_names=['~μ']) 
+print(tabulate(df_summary, headers='keys', tablefmt='fancy_grid'))
 
 for index, row in df_summary.iterrows():
     globals()[index] = row['mean']
