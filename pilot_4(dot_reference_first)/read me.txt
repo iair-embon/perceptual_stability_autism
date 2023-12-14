@@ -1,0 +1,7 @@
+corrimos un reference 1, y luego un morph.
+
+reference: 26
+
+morph: empezaba con 52 y disminuia de a uno por vez hasta 26. 
+
+Se preguntó la confianza luego de cada reporte.
