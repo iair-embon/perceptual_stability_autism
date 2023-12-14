@@ -67,7 +67,7 @@ d_without_outliers = df_with_bias_yuval.merge(pivoted_df['bias_yuval'], on='part
 
 # Model: yi = α + βor x order_codei + βaq x AQ_scaledi + βage x Age_scaledi + βsex x sex_codei + errori
 
-#Where:  y = bias_yuval = many - morph 
+#Where:  y = bias_yuval = many / morph 
 #        order = {0 = morph First ; 1 = many First} 
 #        AQ_scaled = AQ - mean(AQ) 
 #        Age_scaled = age - mean(age) 
