@@ -47,7 +47,7 @@ ubicacion_comp_AQ <- 2
 source(root$find_file("Analysis/AuxiliaryFunctions/Nueva_funcion_AQ_CORREGIDA.R"))
 
 ###### this is the function for AQ
-puntaje_AQ_sujetos <- puntaje_AQ_corregido(n_participants,   ################################ me tira error
+puntaje_AQ_sujetos <- puntaje_AQ_corregido(n_participants,
                                            n_AQ_sublists,
                                            ubicacion_comp_AQ,
                                            AQ)
