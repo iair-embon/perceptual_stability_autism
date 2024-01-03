@@ -38,17 +38,17 @@ participants_to_exclude_2 = df_filtered_1.merge(df_summary, on='type')
 participants_to_exclude_2 = participants_to_exclude_2[participants_to_exclude_2['estimation'] >= participants_to_exclude_2['avg_estimation'] + 2* participants_to_exclude_2['std_estimation']]['participants'].unique()
 df_filtered_2 = df_filtered_1[~df_filtered_1['participants'].isin(participants_to_exclude_2)]
 
-# calculate bias_yuval 1: few/morph
+# calculate bias_yuval 2: few/morph
 df_pivot = df_filtered_2.pivot(index='participants', columns='type', values='estimation')
-df_pivot['bias_yuval_1'] = df_pivot['few'] / df_pivot['morph']
+df_pivot['bias_yuval_2'] = (df_pivot['morph'] - df_pivot['few']) / df_pivot['few']
 df_pivot.reset_index(inplace=True)
 
 # Fusionar solo la columna 'bias' con df_filtered_2
-df_filtered_2 = df_filtered_2.merge(df_pivot[['participants', 'bias_yuval_1']], on='participants')
+df_filtered_2 = df_filtered_2.merge(df_pivot[['participants', 'bias_yuval_2']], on='participants')
 
 ## Combine both df
 df_NotExperimentData_filtered = df_NotExperimentData[df_NotExperimentData['participants'].isin(df_filtered_2['participants'])]
-df_filtered_2_selectedColumns = df_filtered_2[['participants', 'bias_yuval_1']]
+df_filtered_2_selectedColumns = df_filtered_2[['participants', 'bias_yuval_2']]
 df_filtered_2_unique = df_filtered_2_selectedColumns.drop_duplicates(subset=['participants'])
 df_merged = df_NotExperimentData_filtered.merge(df_filtered_2_unique, on = 'participants')
 
@@ -59,7 +59,7 @@ df_merged_filtered = df_merged[~df_merged['participants'].isin(participants_to_e
 
 # Model: yi = α + βaq x AQ_scaledi + βage x Age_scaledi + βsex x sex_codei + errori
 
-#Where:  y = bias_yuval_1 = few / morph 
+#Where:  y = bias_yuval_2 = (morph - few) / few 
 #        AQ_scaled = AQ - mean(AQ) 
 #        Age_scaled = age - mean(age) 
 #        sex = {0 = Male ; 1 = Female}
@@ -76,7 +76,7 @@ df_merged_filtered['AQ_attencion_detail_scaled'] = df_merged_filtered['AQ_attenc
 df_merged_filtered['AQ_communication_scaled'] = df_merged_filtered['AQ_communication'] - df_merged_filtered['AQ_communication'].mean()
 df_merged_filtered['AQ_imagination_scaled'] = df_merged_filtered['AQ_imagination'] - df_merged_filtered['AQ_imagination'].mean()
 
-AQ_rates = df_merged_filtered['AQ_scaled']
+AQ_rates = df_merged_filtered['AQ_imagination_scaled']
 
 with pm.Model() as model_dot_AQ:
     α = pm.Normal("α", mu=0, sigma=10)
@@ -88,7 +88,7 @@ with pm.Model() as model_dot_AQ:
                          β1 * AQ_rates +
                          β2 * df_merged_filtered.age_scaled +
                          β3 * df_merged_filtered.sex_code)
-    _ = pm.Normal('y_pred', mu=μ, sigma=σ, observed=df_merged_filtered.bias_yuval_1)
+    _ = pm.Normal('y_pred', mu=μ, sigma=σ, observed=df_merged_filtered.bias_yuval_2)
 
     idata_dot_AQ = pm.sample(random_seed=123, chains=4)
 
@@ -106,7 +106,6 @@ az.summary(idata_dot_AQ, var_names=['~μ'])
 
 az.plot_forest(idata_dot_AQ, combined = True, var_names=['~μ']);
 plt.axvline(x=0, color='red', linestyle='--')
-plt.axvline(x = 1, color ='blue', linestyle='--')
 plt.show()
 
 # posterior predictive

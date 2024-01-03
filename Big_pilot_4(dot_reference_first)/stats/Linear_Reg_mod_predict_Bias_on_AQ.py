@@ -53,12 +53,14 @@ df_filtered_2_selectedColumns = df_filtered_2[['participants', 'bias']]
 df_filtered_2_unique = df_filtered_2_selectedColumns.drop_duplicates(subset=['participants'])
 df_merged = df_NotExperimentData_filtered.merge(df_filtered_2_unique, on = 'participants')
 
+## exclude some participants that doesnt complete the AQ very well.
+participants_to_exclude_3 = list(range(50,59))
+df_merged_filtered = df_merged[~df_merged['participants'].isin(participants_to_exclude_3)]
 
 
-# Model: yi = α + βor x order_codei + βaq x AQ_scaledi + βage x Age_scaledi + βsex x sex_codei + errori
+# Model: yi = α + βaq x AQ_scaledi + βage x Age_scaledi + βsex x sex_codei + errori
 
 #Where:  y = bias = many - morph 
-#        order = {0 = morph First ; 1 = many First} 
 #        AQ_scaled = AQ - mean(AQ) 
 #        Age_scaled = age - mean(age) 
 #        sex = {0 = Male ; 1 = Female}
@@ -66,19 +68,19 @@ df_merged = df_NotExperimentData_filtered.merge(df_filtered_2_unique, on = 'part
 ## morph: 0 ; many: 1
 #d_without_outliers['order_code'] = d_without_outliers['order'].replace(['morphFirst'], 0)
 #d_without_outliers['order_code'] = d_without_outliers['order_code'].replace(['manyFirst'], 1)
-df_merged['age_scaled'] = df_merged['age'] - df_merged['age'].mean()
-df_merged['sex_code'] = df_merged['sex'].replace(['Male'], 0)
-df_merged['sex_code'] = df_merged['sex_code'].replace(['Female'], 1)
+df_merged_filtered['age_scaled'] = df_merged_filtered['age'] - df_merged_filtered['age'].mean()
+df_merged_filtered['sex_code'] = df_merged_filtered['sex'].replace(['Male'], 0)
+df_merged_filtered['sex_code'] = df_merged_filtered['sex_code'].replace(['Female'], 1)
 
 
-#df_merged['AQ_scaled'] = df_merged['AQ'] - df_merged['AQ'].mean()
-#df_merged['AQ_social_scaled'] = df_merged['AQ_social'] - df_merged['AQ_social'].mean()
-#df_merged['AQ_attentional_switches_scaled'] = df_merged['AQ_attentional_switches'] - df_merged['AQ_attentional_switches'].mean()
-#df_merged['AQ_attencion_detail_scaled'] = df_merged['AQ_attencion_detail'] - df_merged['AQ_attencion_detail'].mean()
-#df_merged['AQ_communication_scaled'] = df_merged['AQ_communication'] - df_merged['AQ_communication'].mean()
-df_merged['AQ_imagination_scaled'] = df_merged['AQ_imagination'] - df_merged['AQ_imagination'].mean()
+df_merged_filtered['AQ_scaled'] = df_merged_filtered['AQ'] - df_merged_filtered['AQ'].mean()
+df_merged_filtered['AQ_social_scaled'] = df_merged_filtered['AQ_social'] - df_merged_filtered['AQ_social'].mean()
+df_merged_filtered['AQ_attentional_switches_scaled'] = df_merged_filtered['AQ_attentional_switches'] - df_merged_filtered['AQ_attentional_switches'].mean()
+df_merged_filtered['AQ_attencion_detail_scaled'] = df_merged_filtered['AQ_attencion_detail'] - df_merged_filtered['AQ_attencion_detail'].mean()
+df_merged_filtered['AQ_communication_scaled'] = df_merged_filtered['AQ_communication'] - df_merged_filtered['AQ_communication'].mean()
+df_merged_filtered['AQ_imagination_scaled'] = df_merged_filtered['AQ_imagination'] - df_merged_filtered['AQ_imagination'].mean()
 
-AQ_rates = df_merged['AQ_imagination_scaled']
+AQ_rates = df_merged_filtered['AQ_imagination_scaled']
 
 with pm.Model() as model_dot_AQ:
     α = pm.Normal("α", mu=0, sigma=10)
@@ -88,9 +90,9 @@ with pm.Model() as model_dot_AQ:
     σ = pm.HalfNormal("σ", 15)
     μ = pm.Deterministic("μ", α +
                          β1 * AQ_rates +
-                         β2 * df_merged.age_scaled +
-                         β3 * df_merged.sex_code)
-    _ = pm.Normal('y_pred', mu=μ, sigma=σ, observed=df_merged.bias)
+                         β2 * df_merged_filtered.age_scaled +
+                         β3 * df_merged_filtered.sex_code)
+    _ = pm.Normal('y_pred', mu=μ, sigma=σ, observed=df_merged_filtered.bias)
 
     idata_dot_AQ = pm.sample(random_seed=123, chains=4)
 
@@ -117,25 +119,25 @@ ax = az.plot_ppc(idata_dot_AQ, num_pp_samples=200)
 
 
 # Plot of both regression lines, one per order
-df_summary = az.summary(idata_dot_AQ, var_names=['~μ']) 
-print(tabulate(df_summary, headers='keys', tablefmt='fancy_grid'))
+# df_summary = az.summary(idata_dot_AQ, var_names=['~μ']) 
+# print(tabulate(df_summary, headers='keys', tablefmt='fancy_grid'))
 
-for index, row in df_summary.iterrows():
-    globals()[index] = row['mean']
+# for index, row in df_summary.iterrows():
+#     globals()[index] = row['mean']
 
-intercept_order_code_0 = α
-intercept_order_code_1 = α + β0 
-slope = β1
+# intercept_order_code_0 = α
+# intercept_order_code_1 = α + β0 
+# slope = β1
 
-plt.figure(figsize=(10, 8))
-sns.scatterplot(data=d_without_outliers, x='AQ_scaled', y='bias', hue='order_code', palette={0: 'darkred', 1: 'darkblue'})
-plt.plot(d_without_outliers['AQ_scaled'], intercept_order_code_0 + slope * d_without_outliers['AQ_scaled'], color='darkred', linewidth=1.5, label='α + βaq x AQ_scaled')
-plt.plot(d_without_outliers['AQ_scaled'], intercept_order_code_1 + slope * d_without_outliers['AQ_scaled'], color='darkblue', linewidth=1.5, label='α + βor x order_code + βaq x AQ_scaled')
-plt.axhline(y=0, linestyle='--', color='black')
-plt.xlabel('AQ_scaled', fontsize=14)
-plt.ylabel('bias', fontsize=14)
-plt.legend(fontsize=12, title='order code', labels=['α + βaq x AQ_scaled', 'α + βor x order_code + βaq x AQ_scaled'])
-plt.grid(False)
-plt.show()
+# plt.figure(figsize=(10, 8))
+# sns.scatterplot(data=d_without_outliers, x='AQ_scaled', y='bias', hue='order_code', palette={0: 'darkred', 1: 'darkblue'})
+# plt.plot(d_without_outliers['AQ_scaled'], intercept_order_code_0 + slope * d_without_outliers['AQ_scaled'], color='darkred', linewidth=1.5, label='α + βaq x AQ_scaled')
+# plt.plot(d_without_outliers['AQ_scaled'], intercept_order_code_1 + slope * d_without_outliers['AQ_scaled'], color='darkblue', linewidth=1.5, label='α + βor x order_code + βaq x AQ_scaled')
+# plt.axhline(y=0, linestyle='--', color='black')
+# plt.xlabel('AQ_scaled', fontsize=14)
+# plt.ylabel('bias', fontsize=14)
+# plt.legend(fontsize=12, title='order code', labels=['α + βaq x AQ_scaled', 'α + βor x order_code + βaq x AQ_scaled'])
+# plt.grid(False)
+# plt.show()
 
 
