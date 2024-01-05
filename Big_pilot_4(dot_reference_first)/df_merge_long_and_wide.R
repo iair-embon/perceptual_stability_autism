@@ -23,22 +23,25 @@ df_merge_long <- df_exp %>%
   arrange(participants)
 
 
-# save both data set
+# save data set
 filepath <- root$find_file("Big_pilot_4(dot_reference_first)/df_merge_long.csv")
 write.csv(df_merge_long, file = filepath, row.names = FALSE)
 
 
 ########### from long to wide
 
-df_merge_wide <- df_merge_long %>%
+df_merge_wide <- df_exp %>%
   pivot_wider(
     names_from = type,
-    values_from = c( position_stim, estimation),
-    names_prefix = "trial_",
-    values_fn = mean
+    values_from = c(confidence, estimation, position_stim),
+    names_glue = "{.value}_{type}"
   ) %>%
-  select(-starts_with("trial_NA")) %>%
-  distinct(participants, .keep_all = TRUE)  ############ COrrect the error!!! NA estimations
+  left_join(df_NotExperimentData, by = 'participants') %>%
+  arrange(participants)
 
-# show new data set wide
-head(df_merge_wide)
+# save data set
+filepath <- root$find_file("Big_pilot_4(dot_reference_first)/df_merge_wide.csv")
+write.csv(df_merge_wide, file = filepath, row.names = FALSE)
+
+
+
