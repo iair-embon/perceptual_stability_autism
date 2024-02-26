@@ -167,6 +167,13 @@ all_results_df_AQ_attencion_detail.AQ_slope.hist()
 all_results_df_AQ_communication.AQ_slope.hist()
 all_results_df_AQ_imagination.AQ_slope.hist()
 
+all_results_df_AQ.AQ_slope.mean()
+all_results_df_AQ_social.AQ_slope.mean()
+all_results_df_AQ_attentional_switches.AQ_slope.mean()
+all_results_df_AQ_attencion_detail.AQ_slope.mean()
+all_results_df_AQ_communication.AQ_slope.mean()
+all_results_df_AQ_imagination.AQ_slope.mean()
+
 
 all_results_df.to_csv('/home/iair/Documents/Investigación/perceptual_stability_autism/Big_pilot_4(dot_reference_first)/all_results_df.csv',index = False)
 
