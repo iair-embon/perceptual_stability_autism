@@ -14,12 +14,23 @@ df$indv_bias = (df$morph- df$many)/df$many
 df_filt <- df %>%
   filter((morph<=100) & (many <=100))
 
+# drop outliers
+
+mean_bias <- mean(df_filt$indv_bias)
+sd_bias <- sd(df_filt$indv_bias)
+
+upper_limit <- mean_bias + 2 * sd_bias
+lower_limit <- mean_bias - 2 * sd_bias
+
+df_filt <- df_filt %>%
+  filter(indv_bias >= lower_limit & indv_bias <= upper_limit)
+
 ## AQ_threeFactor
 
-summary(lm(indv_bias ~ AQ_threeFactor, data = df))
+summary(lm(indv_bias ~ AQ_threeFactor, data = df_filt))
 
 # Crear el gráfico de dispersión con la línea de regresión y ajustes personalizados
-ggplot(df, aes(x = AQ_threeFactor, y = indv_bias)) +
+ggplot(df_filt, aes(x = AQ_threeFactor, y = indv_bias)) +
   geom_point(color = "black", fill = "grey", size = 3, shape = 21, stroke = 1) +  # Puntos de dispersión personalizados
   geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black") +  # Línea de regresión azul
   labs(x = "AQ_threeFactor", y = "indv_bias") +
@@ -32,10 +43,10 @@ ggplot(df, aes(x = AQ_threeFactor, y = indv_bias)) +
 
 ## AQ_social_threeFactor
 
-summary(lm(indv_bias ~ AQ_social_threeFactor, data = df))
+summary(lm(indv_bias ~ AQ_social_threeFactor, data = df_filt))
 
 # Crear el gráfico de dispersión con la línea de regresión y ajustes personalizados
-ggplot(df, aes(x = AQ_social_threeFactor, y = indv_bias)) +
+ggplot(df_filt, aes(x = AQ_social_threeFactor, y = indv_bias)) +
   geom_point(color = "black", fill = "grey", size = 3, shape = 21, stroke = 1) +  # Puntos de dispersión personalizados
   geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black") +  # Línea de regresión azul
   labs(x = "AQ_social_threeFactor", y = "indv_bias") +
@@ -47,10 +58,10 @@ ggplot(df, aes(x = AQ_social_threeFactor, y = indv_bias)) +
 
 ## AQ_detail_threeFactor
 
-summary(lm(indv_bias ~ AQ_detail_threeFactor, data = df))
+summary(lm(indv_bias ~ AQ_detail_threeFactor, data = df_filt))
 
 # Crear el gráfico de dispersión con la línea de regresión y ajustes personalizados
-ggplot(df, aes(x = AQ_detail_threeFactor, y = indv_bias)) +
+ggplot(df_filt, aes(x = AQ_detail_threeFactor, y = indv_bias)) +
   geom_point(color = "black", fill = "grey", size = 3, shape = 21, stroke = 1) +  # Puntos de dispersión personalizados
   geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black") +  # Línea de regresión azul
   labs(x = "AQ_detail_threeFactor", y = "indv_bias") +
@@ -62,10 +73,10 @@ ggplot(df, aes(x = AQ_detail_threeFactor, y = indv_bias)) +
 
 ## AQ_communication_threeFactor
 
-summary(lm(indv_bias ~ AQ_communication_threeFactor, data = df))
+summary(lm(indv_bias ~ AQ_communication_threeFactor, data = df_filt))
 
 # Crear el gráfico de dispersión con la línea de regresión y ajustes personalizados
-ggplot(df, aes(x = AQ_communication_threeFactor, y = indv_bias)) +
+ggplot(df_filt, aes(x = AQ_communication_threeFactor, y = indv_bias)) +
   geom_point(color = "black", fill = "grey", size = 3, shape = 21, stroke = 1) +  # Puntos de dispersión personalizados
   geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black") +  # Línea de regresión azul
   labs(x = "AQ_communication_threeFactor", y = "indv_bias") +
